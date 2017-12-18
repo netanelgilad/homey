@@ -31,7 +31,16 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.post('/command/:name', function(req, res) {
+async function sendCommand(device, data, times = 1) {
+    for (let i = 0; i < times; i++) {
+        sendData(device, data);
+
+        await new Promise(res => setTimeout(res, 200));
+    }
+}
+
+app.post('/command/:name', async function(req, res) {
+    try {
     const command = commands.find((e) => { return e.command == req.params.name; });
 
     if (command && req.body.secret && req.body.secret == command.secret) {
@@ -51,16 +60,15 @@ app.post('/command/:name', function(req, res) {
                     let find = command.sequence[i];
                     let send = commands.find((e) => { return e.command == find; });
                     if(send) {
-                        setTimeout(() => {
-                            console.log(`Sending command ${send.command}`)
-                            sendData(device, send.data);
-                        }, 1000 * i);
+                        console.log(`${new Date()} Sending command ${send.command}`)
+                        await sendCommand(device, send.data, req.body.times);
+                        await new Promise(res => setTimeout(res, 1000));
                     } else {
                         console.log(`Sequence command ${find} not found`);
                     }
                 }
             } else {
-                sendData(device, command.data);
+                sendCommand(device, command.data, req.body.times);
             }
 
             return res.sendStatus(200);
@@ -70,6 +78,11 @@ app.post('/command/:name', function(req, res) {
     } else {
         console.log(`Command not found: ${req.params.name}`);
         res.sendStatus(400);
+    }
+    }
+    catch (err) {
+        console.error(err);
+        res.send(500);
     }
 });
 

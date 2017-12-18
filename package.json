@@ -1,5 +1,5 @@
 {
-    "name": "BroadLinkServer",
+    "name": "broadlink-server",
     "version": "0.0.1",
     "main": "server.js",
     "author": "jor3l",
