@@ -58,7 +58,9 @@ exports.tvShows = function(app) {
         
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
-        const results = await search(`${tvShow} s${pad(season)}e${pad(episode)}`);
+        const pirateBayQuery = `${tvShow} s${pad(season)}e${pad(episode)}`;
+        console.log("getting torrent from thepiratebay for query", pirateBayQuery)
+        const results = await search(pirateBayQuery);
 
         console.log(`Got ${results.length} results from thepiratebay.`);
         if (results.length === 0) {
