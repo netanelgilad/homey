@@ -103,7 +103,7 @@ exports.tvShows = function(app) {
     });
 
     app.get("/subtitles/srt/:fileBase", async (req, res) => {
-        console.log("got request for subtitles");
+        console.log("got request for subtitles/srt");
         const filePath = utf8.decode(decode(req.params.fileBase));
 
         createReadStream(filePath)
@@ -138,8 +138,15 @@ function onReady(torrent, port, req, res) {
             if (englishSrtFile) {
                 console.log("found english sub file, waiting for download..");
                 subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`
-                englishSrtFile.createReadStream().on('end', () => {
-                    console.log("done download sub file. playing...");
+                englishSrtFile.getBuffer((err) => {
+                    if (err) {
+                        console.log("failed to get substitles file. Trying from open subtitles...");
+                        subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
+                    }
+                    else {
+                        console.log("done download sub file. playing...");
+                    }
+                    
                     player.play(href, {
                         title: 'Homey - ' + torrent.files[index].name,
                         subtitles: [subtitlesLink],
