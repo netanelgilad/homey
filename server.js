@@ -1,5 +1,5 @@
 "use strict";
-const PORT = process.env.PORT || 1880;
+const PORT = process.env.PORT || 35601;
 
 /* Modules */
 const express = require('express');
@@ -68,6 +68,7 @@ app.post('/command/:name', async function(req, res) {
                     }
                 }
             } else {
+console.log(`Sending command ${command.name}...`);
                 sendCommand(device, command.data, req.body.times);
             }
 
