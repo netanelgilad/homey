@@ -4,6 +4,7 @@ const Chromecast = require('chromecasts');
 const {search} = require("thepiratebay");
 const { get } = require('axios');
 const { runCommand } = require('./runCommand');
+const commands = require('./commands');
 
 const pad = (number) => number < 10 ? `0${number}` : String(number);
 
