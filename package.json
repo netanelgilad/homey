@@ -6,16 +6,22 @@
     "license": "ISC",
     "dependencies": {
         "axios": "^0.18.0",
+        "base-64": "^0.1.0",
         "body-parser": "latest",
         "broadlinkjs-rm": "latest",
         "chromecasts": "^1.9.1",
         "cors": "latest",
+        "download-tarball": "^1.1.0",
         "express": "latest",
+        "gunzip-maybe": "^1.4.1",
         "helmet": "latest",
-        "lodash": "latest",
+        "lodash": "^4.17.10",
         "network-address": "^1.1.2",
         "request": "latest",
+        "srt-to-vtt": "^1.1.2",
+        "subtitler": "^2.6.0",
         "thepiratebay": "^1.4.7",
+        "utf8": "^3.0.0",
         "uuid": "latest",
         "webtorrent": "^0.99.4"
     }
