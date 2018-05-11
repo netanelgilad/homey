@@ -20,7 +20,7 @@ const safeGet = async url => {
 
 exports.tvShows = function(app) {
     app.post('/tv-show', async (req, res) => {
-        const tvShow = req.body.tvShow;
+        let tvShow = req.body.tvShow;
         console.log("Got request to stream the last episode of", tvShow);
 
         if (tvShow.startsWith("of ")) {
