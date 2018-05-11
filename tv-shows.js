@@ -35,6 +35,12 @@ exports.tvShows = function(app) {
 
         const results = await search(`${tvShow} s${pad(season)}e${pad(episode)}`);
 
+        console.log(`Got ${results.length} results from thepiratebay.`);
+        if (results.length === 0) {
+            console.log("Oops, not matching results found");
+            return;
+        }
+
         const bestTorrent = results[0];
         const magnetLink = bestTorrent.magnetLink;
 
