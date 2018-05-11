@@ -39,14 +39,6 @@ exports.tvShows = function(app) {
 
         if (!episode) {
             console.log("Got request to stream the last episode of", tvShow);
-
-            if (tvShow.startsWith("of ")) {
-                tvShow = tvShow.replace("of ", "");
-            }
-    
-            tvShow = tvShow.replace("'", "");
-            tvShow = tvShow.replace(/ \w /, " ");
-            tvShow = tvShow.replace("-", " ");
     
             const showInfo = await safeGet(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`);
             const lastEpisodeInfo = await safeGet(showInfo._links.previousepisode.href);
@@ -56,6 +48,14 @@ exports.tvShows = function(app) {
             season = Math.floor(episode/100);
             episode = episode % 100;
         }
+
+        if (tvShow.startsWith("of ")) {
+            tvShow = tvShow.replace("of ", "");
+        }
+
+        tvShow = tvShow.replace("'", "");
+        tvShow = tvShow.replace(/ \w /, " ");
+        tvShow = tvShow.replace("-", " ");
         
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
