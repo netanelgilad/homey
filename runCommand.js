@@ -1,4 +1,4 @@
-exports.runCommand = function(command, req, res) {
+exports.runCommand = async function(command, req, res) {
     try {
     if (command && req.body.secret && req.body.secret == command.secret) {
         let host = command.mac || command.ip;
