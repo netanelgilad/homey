@@ -55,6 +55,7 @@ exports.tvShows = function(app) {
 
         const torrent = client.add(magnetLink, {path: process.cwd()});
         torrent.on('infoHash', () => {
+            console.log("Got torrent infoHas, creating server...");
             const server = torrent.createServer();
             server.listen(0, () => {
                 if (torrent.ready) onReady(torrent, server.address().port, req, res)
@@ -71,6 +72,7 @@ exports.tvShows = function(app) {
 }
 
 function onReady(torrent, port, req, res) {
+    console.log("server and torrent are ready, streaming to chromecast...");
     var index = torrent.files.indexOf(torrent.files.reduce(function (a, b) {
       return a.length > b.length ? a : b
     }));
@@ -81,6 +83,7 @@ function onReady(torrent, port, req, res) {
     let foundChromecast = false;
     chromecastClient.on('update', player => {
         if (player.name.toLowerCase() === "living room tv" && !foundChromecast) {
+            console.log("found chromecast, changing source and streaming...");
             foundChromecast = true;
 
             console.log("Changing to chromecast");
