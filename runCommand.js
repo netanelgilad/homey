@@ -1,3 +1,24 @@
+const Broadlink = require('./device');
+const commands = require('./commands');
+
+async function sendCommand(device, data, times = 1) {
+    for (let i = 0; i < times; i++) {
+        sendData(device, data);
+
+        await new Promise(res => setTimeout(res, 200));
+    }
+}
+
+function sendData(device = false, hexData = false) {
+    if(device === false || hexData === false) {
+        console.log('Missing params, sendData failed', typeof device, typeof hexData);
+        return;
+    }
+
+    const hexDataBuffer = new Buffer(hexData, 'hex');
+    device.sendData(hexDataBuffer);
+}
+
 exports.runCommand = async function(command, req, res) {
     try {
     if (command && req.body.secret && req.body.secret == command.secret) {
