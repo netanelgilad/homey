@@ -33,6 +33,7 @@ const safeGet = async url => {
 exports.tvShows = function(app) {
     app.post('/tv-show', async (req, res) => {
         let tvShow = req.body.tvShow;
+        console.log("got request to stream tv show", tvShow);
         let season = req.body.season;
         let episode = req.body.episode;
 
