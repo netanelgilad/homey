@@ -61,7 +61,7 @@ exports.tvShows = function(app) {
             server.listen(0, () => {
                 console.log("server started on ", server.address());
                 if (torrent.ready) onReady(torrent, server.address().port, req, res)
-                else torrent.once('ready', () => onReady(torrent, server.address().port), req, res)
+                else torrent.once('ready', () => onReady(torrent, server.address().port, req, res))
             }).on('error', function (err) {
                 if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
                   // If port is taken, pick one a free one automatically
