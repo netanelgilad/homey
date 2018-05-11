@@ -39,8 +39,8 @@ exports.tvShows = function(app) {
     app.post('/tv-show', async (req, res) => {
         let tvShow = req.body.tvShow;
 
-        if (tvShow.startsWith("of ")) {
-            tvShow = tvShow.replace("of ", "");
+        if (tvShow.startsWith("of ") || tvShow.startsWith(" of ")) {
+            tvShow = tvShow.replace("of", "");
         }
 
         tvShow = tvShow.replace("'", "");
