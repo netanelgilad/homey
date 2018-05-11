@@ -135,57 +135,67 @@ function onReady(torrent, port, req, res) {
     var index = torrent.files.indexOf(torrent.files.reduce(function (a, b) {
       return a.length > b.length ? a : b
     }));
+
+    torrent.files[index].createReadStream({
+        start: 0,
+        end: 64 * 1024
+    }).on('end', () => {
+        torrent.files[index].createReadStream({
+            start: torrent.files[index].length - 64 * 1024,
+            end: torrent.files[index].length
+        }).on('end', () => {
+            const href = 'http://' + networkAddress() + ':' + port + '/' + index;
     
-    const href = 'http://' + networkAddress() + ':' + port + '/' + index;
-    
-    const chromecastClient = Chromecast();
-    let foundChromecast = false;
-    chromecastClient.on('update', async player => {
-        if (player.name.toLowerCase() === "living room tv" && !foundChromecast) {
-            console.log("found chromecast, changing source and streaming...");
-            foundChromecast = true;
-
-            console.log("Changing to chromecast");
-            const command = commands.find((e) => { return e.command == "change_to_Chromecast"; });
-            runCommand(command, req, res);
-
-            const englishSrtFile = find(torrent.files, file => endsWith(file.path, ".srt") && 
-                (includes(file.path.toLowerCase(), "english") || includes(file.path.toLowerCase("eng"))));
-
-            let subtitlesLink;
-            if (englishSrtFile) {
-                console.log("found english sub file, waiting for download..");
-                subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`
-                englishSrtFile.getBuffer((err) => {
-                    if (err) {
-                        console.log("failed to get substitles file. Trying from open subtitles...");
-                        subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
+            const chromecastClient = Chromecast();
+            let foundChromecast = false;
+            chromecastClient.on('update', async player => {
+                if (player.name.toLowerCase() === "living room tv" && !foundChromecast) {
+                    console.log("found chromecast, changing source and streaming...");
+                    foundChromecast = true;
+        
+                    console.log("Changing to chromecast");
+                    const command = commands.find((e) => { return e.command == "change_to_Chromecast"; });
+                    runCommand(command, req, res);
+        
+                    const englishSrtFile = find(torrent.files, file => endsWith(file.path, ".srt") && 
+                        (includes(file.path.toLowerCase(), "english") || includes(file.path.toLowerCase("eng"))));
+        
+                    let subtitlesLink;
+                    if (englishSrtFile) {
+                        console.log("found english sub file, waiting for download..");
+                        subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`
+                        englishSrtFile.getBuffer((err) => {
+                            if (err) {
+                                console.log("failed to get substitles file. Trying from open subtitles...");
+                                subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
+                            }
+                            else {
+                                console.log("done download sub file. playing...");
+                            }
+                            
+                            player.play(href, {
+                                title: 'Homey - ' + torrent.files[index].name,
+                                subtitles: [subtitlesLink],
+                                autoSubtitles: true
+                            });
+                        });
                     }
                     else {
-                        console.log("done download sub file. playing...");
+                        subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
+                        console.log("playing...");
+                        player.play(href, {
+                            title: 'Homey - ' + torrent.files[index].name,
+                            subtitles: [subtitlesLink],
+                            autoSubtitles: true
+                        });
                     }
                     
-                    player.play(href, {
-                        title: 'Homey - ' + torrent.files[index].name,
-                        subtitles: [subtitlesLink],
-                        autoSubtitles: true
-                    });
-                });
-            }
-            else {
-                subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
-                console.log("playing...");
-                player.play(href, {
-                    title: 'Homey - ' + torrent.files[index].name,
-                    subtitles: [subtitlesLink],
-                    autoSubtitles: true
-                });
-            }
-            
-            player.on('error', err => {
-                err.message = 'Chromecast: ' + err.message
-                console.log(err);
-            })
-        }
-    });
+                    player.on('error', err => {
+                        err.message = 'Chromecast: ' + err.message
+                        console.log(err);
+                    })
+                }
+            });
+        }).resume();
+    }).resume();
 }
