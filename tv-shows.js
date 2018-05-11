@@ -31,7 +31,7 @@ exports.tvShows = function(app) {
         const lastEpisodeInfo = safeGet(showInfo._links.previousepisode.href);
         const season = lastEpisodeInfo.season;
         const episode = lastEpisodeInfo.number;
-        console.log(`Downloading torrent for season ${season} and episode ${epsiode}`);
+        console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
         const results = await search(`${tvShow} s${pad(season)}e${pad(episode)}`);
 
