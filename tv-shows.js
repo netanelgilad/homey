@@ -6,14 +6,28 @@ const { get } = require('axios');
 
 const pad = (number) => number < 10 ? `0${number}` : String(number);
 
+const safeGet = async url => {
+    try {
+        const response = await get(url);
+        return response.data;
+    }
+    catch (err) {
+        console.log('Failed to get from url', url);
+        console.log(err);
+        console.log(err.response.data);
+    }
+}
+
 exports.tvShows = function(app) {
     app.post('/tv-show', async (req, res) => {
         const tvShow = req.body.tvShow;
+        console.log("Got request to stream the last episode of ", tvShow);
 
         const showInfo = (await get(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`)).data;
         const lastEpisodeInfo = (await get(showInfo._links.previousepisode.href)).data;
         const season = lastEpisodeInfo.season;
         const episode = lastEpisodeInfo.number;
+        console.log(`Downloading torrent for season ${season} and episode ${epsiode}`);
 
         const results = await search(`${tvShow} s${pad(season)}e${pad(episode)}`);
 
