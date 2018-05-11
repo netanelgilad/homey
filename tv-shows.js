@@ -136,8 +136,10 @@ function onReady(torrent, port, req, res) {
 
             let subtitlesLink;
             if (englishSrtFile) {
+                console.log("found english sub file, waiting for download..");
                 subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`
-                englishSrtFile.createReadStream().on('done', () => {
+                englishSrtFile.createReadStream().on('end', () => {
+                    console.log("done download sub file. playing...");
                     player.play(href, {
                         title: 'Homey - ' + torrent.files[index].name,
                         subtitles: [subtitlesLink],
@@ -147,6 +149,7 @@ function onReady(torrent, port, req, res) {
             }
             else {
                 subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
+                console.log("playing...");
                 player.play(href, {
                     title: 'Homey - ' + torrent.files[index].name,
                     subtitles: [subtitlesLink],
