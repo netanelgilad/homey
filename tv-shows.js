@@ -21,10 +21,14 @@ const safeGet = async url => {
 exports.tvShows = function(app) {
     app.post('/tv-show', async (req, res) => {
         const tvShow = req.body.tvShow;
-        console.log("Got request to stream the last episode of ", tvShow);
+        console.log("Got request to stream the last episode of", tvShow);
 
-        const showInfo = (await get(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`)).data;
-        const lastEpisodeInfo = (await get(showInfo._links.previousepisode.href)).data;
+        if (tvShow.startsWith("of ")) {
+            tvShow = tvShow.replace("of ", "");
+        }
+
+        const showInfo = await safeGet(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`);
+        const lastEpisodeInfo = safeGet(showInfo._links.previousepisode.href);
         const season = lastEpisodeInfo.season;
         const episode = lastEpisodeInfo.number;
         console.log(`Downloading torrent for season ${season} and episode ${epsiode}`);
