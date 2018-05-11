@@ -6,17 +6,22 @@ const { get } = require('axios');
 const { runCommand } = require('./runCommand');
 const commands = require('./commands');
 const downloadTarball = require("download-tarball");
-const { join } = require("path");
+const { join, basename } = require("path");
 const http = require("http");
 const gunzip = require("gunzip-maybe");
 const srt2vtt = require('srt-to-vtt')
 const opensubtitles = require('subtitler');
 const {encode, decode} = require('base-64');
 const utf8 = require('utf8');
-const { find, endsWith, includes } = require('lodash');
+const { find, endsWith, includes, minBy } = require('lodash');
 const {createReadStream} = require('fs');
+const levenshtein = require('fast-levenshtein');
 
 const pad = (number) => number < 10 ? `0${number}` : String(number);
+
+function cleanFileName(file) {
+    return basename(file).substr(0, basename(file).lastIndexOf('.'));
+}
 
 const safeGet = async url => {
     try {
@@ -99,11 +104,19 @@ exports.tvShows = function(app) {
         console.log("got request for subtitles");
         const filePath = utf8.decode(decode(req.params.fileBase));
         const token = await opensubtitles.api.login();
-        console.log(join(process.cwd(), filePath));
-        const results = await opensubtitles.api.searchForFile(token, "en", join(process.cwd(), filePath));
-        http.get(results[0].SubDownloadLink, response => {
-            response.pipe(gunzip()).pipe(srt2vtt()).pipe(res);
-        })
+        const results = await opensubtitles.api.searchForFile(token, "eng", join(process.cwd(), filePath));
+
+        if (results.length > 0) {
+            const subtitle = minBy(results, result => levenshtein.get(cleanFileName(result.SubFileName), cleanFileName(filePath)));
+            http.get(subtitle.SubDownloadLink, response => {
+                response.pipe(gunzip()).pipe(srt2vtt()).pipe(res);
+            });
+        }
+        else {
+            console.log("no subtitles found for file", join(process.cwd(), filePath));
+        }
+        
+        
     });
 
     app.get("/subtitles/srt/:fileBase", async (req, res) => {
