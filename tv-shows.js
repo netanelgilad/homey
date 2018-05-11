@@ -27,8 +27,8 @@ exports.tvShows = function(app) {
             tvShow = tvShow.replace("of ", "");
         }
 
-        tvShow.replace("'", "");
-        tvShow.replace(/ \w /, " ");
+        tvShow = tvShow.replace("'", "");
+        tvShow = tvShow.replace(/ \w /, " ");
 
         const showInfo = await safeGet(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`);
         const lastEpisodeInfo = await safeGet(showInfo._links.previousepisode.href);
