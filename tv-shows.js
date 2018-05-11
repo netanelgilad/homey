@@ -58,6 +58,7 @@ exports.tvShows = function(app) {
             console.log("Got torrent infoHas, creating server...");
             const server = torrent.createServer();
             server.listen(0, () => {
+                console.log("server started on ", server.address());
                 if (torrent.ready) onReady(torrent, server.address().port, req, res)
                 else torrent.once('ready', () => onReady(torrent, server.address().port), req, res)
             }).on('error', function (err) {
