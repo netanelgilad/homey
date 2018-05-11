@@ -137,17 +137,22 @@ function onReady(torrent, port, req, res) {
             let subtitlesLink;
             if (englishSrtFile) {
                 subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`
+                englishSrtFile.createReadStream().on('done', () => {
+                    player.play(href, {
+                        title: 'Homey - ' + torrent.files[index].name,
+                        subtitles: [subtitlesLink],
+                        autoSubtitles: true
+                    });
+                });
             }
             else {
                 subtitlesLink = 'http://' + networkAddress() + `:35601/subtitles/${encode(utf8.encode(torrent.files[index].path))}`;
+                player.play(href, {
+                    title: 'Homey - ' + torrent.files[index].name,
+                    subtitles: [subtitlesLink],
+                    autoSubtitles: true
+                });
             }
-        
-            player.play(href, {
-                title: 'Homey - ' + torrent.files[index].name,
-                subtitles: [subtitlesLink],
-                autoSubtitles: true
-            });
-
             
             player.on('error', err => {
                 err.message = 'Chromecast: ' + err.message
