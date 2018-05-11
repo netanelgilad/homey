@@ -28,7 +28,7 @@ exports.tvShows = function(app) {
         }
 
         const showInfo = await safeGet(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`);
-        const lastEpisodeInfo = safeGet(showInfo._links.previousepisode.href);
+        const lastEpisodeInfo = await safeGet(showInfo._links.previousepisode.href);
         const season = lastEpisodeInfo.season;
         const episode = lastEpisodeInfo.number;
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
@@ -38,6 +38,8 @@ exports.tvShows = function(app) {
         console.log(`Got ${results.length} results from thepiratebay.`);
         if (results.length === 0) {
             console.log("Oops, not matching results found");
+            res.sendStatus(500);
+            res.end();
             return;
         }
 
