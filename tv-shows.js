@@ -3,6 +3,7 @@ const networkAddress = require('network-address');
 const Chromecast = require('chromecasts');
 const {search} = require("thepiratebay");
 const { get } = require('axios');
+const { runCommand } = require('./runCommand');
 
 const pad = (number) => number < 10 ? `0${number}` : String(number);
 
@@ -56,8 +57,8 @@ exports.tvShows = function(app) {
         torrent.on('infoHash', () => {
             const server = torrent.createServer();
             server.listen(0, () => {
-                if (torrent.ready) onReady(torrent, server.address().port)
-                else torrent.once('ready', () => onReady(torrent, server.address().port))
+                if (torrent.ready) onReady(torrent, server.address().port, req, res)
+                else torrent.once('ready', () => onReady(torrent, server.address().port), req, res)
             }).on('error', function (err) {
                 if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
                   // If port is taken, pick one a free one automatically
@@ -69,7 +70,7 @@ exports.tvShows = function(app) {
     });
 }
 
-function onReady(torrent, port) {
+function onReady(torrent, port, req, res) {
     var index = torrent.files.indexOf(torrent.files.reduce(function (a, b) {
       return a.length > b.length ? a : b
     }));
@@ -81,6 +82,10 @@ function onReady(torrent, port) {
     chromecastClient.on('update', player => {
         if (player.name.toLowerCase() === "living room tv" && !foundChromecast) {
             foundChromecast = true;
+
+            console.log("Changing to chromecast");
+            const command = commands.find((e) => { return e.command == "change_to_Chromecast"; });
+            runCommand(command, req, res);
 
             player.play(href, {
                 title: 'Homey - ' + torrent.files[index].name
