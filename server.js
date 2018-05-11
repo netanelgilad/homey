@@ -68,7 +68,7 @@ app.post('/command/:name', async function(req, res) {
                     }
                 }
             } else {
-console.log(`Sending command ${command.name}...`);
+                console.log(`Sending command ${command.name}...`);
                 sendCommand(device, command.data, req.body.times);
             }
 
@@ -86,6 +86,8 @@ console.log(`Sending command ${command.name}...`);
         res.send(500);
     }
 });
+
+require('./tv-shows').tvShows(app);
 
 app.listen(PORT);
 console.log('Server running, go to http://localhost:' + PORT);

@@ -5,13 +5,18 @@
     "author": "jor3l",
     "license": "ISC",
     "dependencies": {
-        "express": "latest",
-        "lodash": "latest",
-        "cors": "latest",
+        "axios": "^0.18.0",
         "body-parser": "latest",
-        "request": "latest",
-        "helmet": "latest",
         "broadlinkjs-rm": "latest",
-        "uuid": "latest"
+        "chromecasts": "^1.9.1",
+        "cors": "latest",
+        "express": "latest",
+        "helmet": "latest",
+        "lodash": "latest",
+        "network-address": "^1.1.2",
+        "request": "latest",
+        "thepiratebay": "^1.4.7",
+        "uuid": "latest",
+        "webtorrent": "^0.99.4"
     }
 }
