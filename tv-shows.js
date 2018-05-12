@@ -43,6 +43,7 @@ exports.tvShows = function(app) {
             tvShow = tvShow.replace("of", "");
         }
 
+        tvShow = tvShow.replace(" ' ", "");
         tvShow = tvShow.replace("'", "");
         tvShow = tvShow.replace(/ \w /, " ");
         tvShow = tvShow.replace("-", " ");
@@ -193,6 +194,10 @@ function onReady(torrent, port, req, res) {
                     player.on('error', err => {
                         err.message = 'Chromecast: ' + err.message
                         console.log(err);
+                    });
+
+                    player.on('Status', status => {
+                        console.log("Chromecast status", status);
                     })
                 }
             });
