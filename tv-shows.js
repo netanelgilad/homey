@@ -84,7 +84,7 @@ exports.tvShows = function(app) {
         const client = new WEbTorrent({});
         client.on('error', console.log);
 
-        const torrent = client.add(magnetLink, {path: process.cwd()});
+        const torrent = client.add(magnetLink, {path: join(process.cwd(), "./torrents"), announce: ['udp://public.popcorn-tracker.org:6969/announce']});
         torrent.on('infoHash', () => {
             console.log("Got torrent infoHas, creating server...");
             const server = torrent.createServer();
