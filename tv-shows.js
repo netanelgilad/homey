@@ -52,7 +52,12 @@ exports.tvShows = function(app) {
 
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
-        await ensureTorrentForEpisode(tvShow, season, episode);
+        const torrent = await ensureTorrentForEpisode(tvShow, season, episode);
+        if (!torrent) {
+            res.sendStatus(500);
+            res.end();
+            return;
+        }
         
         console.log("torrent queued for download.");
         res.sendStatus(200);
@@ -65,6 +70,11 @@ exports.tvShows = function(app) {
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
         const torrent = await ensureTorrentForEpisode(tvShow, season, episode);
+        if (!torrent) {
+            res.sendStatus(500);
+            res.end();
+            return;
+        }
 
         if (torrent.infoHash) onInfoHash(torrent, req, res, season, episode);
         else torrent.on('infoHash', () => onInfoHash(torrent, req, res, season, episode));
@@ -250,7 +260,7 @@ async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
 
 const streamableEpisodes = [];
 
-async function ensureTorrentForEpisode(tvShow, season, episode) {
+async function ensureTorrentForEpisode(tvShow, season, episode, res) {
     let streamableEpisode = find(streamableEpisodes,{
         tvShow,
         season,
@@ -261,8 +271,7 @@ async function ensureTorrentForEpisode(tvShow, season, episode) {
         const magnetLink = await getMagnetLinkFromPiratebay(tvShow, season, episode);
 
         if (!magnetLink) {
-            res.sendStatus(500);
-            res.end();
+            return;
         }
 
         const torrent = client.add(magnetLink, {path: join(process.cwd(), "./torrents"), announce: ['udp://public.popcorn-tracker.org:6969/announce']});
