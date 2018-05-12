@@ -222,6 +222,7 @@ async function getTVShowDataFromRequest(req, res) {
     tvShow = tvShow.replace("'", "");
     tvShow = tvShow.replace(/ \w /, " ");
     tvShow = tvShow.replace("-", " ");
+    tvShow = tvShow.replace(/ +(?= )/g,'');
 
     console.log("got request to stream tv show", tvShow);
     let season = req.body.season;
