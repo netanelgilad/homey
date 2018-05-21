@@ -15,18 +15,25 @@ import { find, endsWith, includes, minBy } from "lodash";
 import { createReadStream } from "fs";
 import { safeGet, pad } from "./utils";
 import { getDownloadedTvShowEpisode, saveDownloadedTvShowEpisode } from "./tv-shows/db";
+import { canonizeTVShowName } from "./tv-shows/TVShow";
+import { getLastEpisodeOfTVShow } from "./tv-shows/getLastEpisodeOfTVShow";
 
 const client = new WebTorrent({});
 client.on('error', console.log);
 
 export function tvShows(app) {
     app.post('/tv-show/download', async (req, res) => {
-        const {tvShow, season, episode} = await getTVShowDataFromRequest(req, res);
+        const tvShow = canonizeTVShowName(req.params.tvShow);
+        console.log("Got request to download an episode of ", tvShow);
+
+        const {season, episode} = await getTVShowDataFromRequest(tvShow, req);
 
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
         const torrent = await ensureTorrentForEpisode(tvShow, season, episode);
+
         if (!torrent) {
+            console.error("Failed to ensure torrent!");
             res.sendStatus(500);
             res.end();
             return;
@@ -38,16 +45,22 @@ export function tvShows(app) {
     });
 
     app.post('/tv-show', async (req, res) => {
-        const {tvShow, season, episode} = await getTVShowDataFromRequest(req, res);
-        
+        const tvShow = canonizeTVShowName(req.params.tvShow);
+        console.log("Got request to stream an episode of ", tvShow);
+
+        const {season, episode} = await getTVShowDataFromRequest(tvShow, req);
+
         console.log(`Downloading torrent for season ${season} and episode ${episode}`);
 
         const torrent = await ensureTorrentForEpisode(tvShow, season, episode);
+
         if (!torrent) {
             res.sendStatus(500);
             res.end();
             return;
         }
+
+        console.log("Torrent ensured, waiting for infoHash of torrent...");
 
         if (torrent.infoHash) onInfoHash(torrent, req, res, season, episode);
         else torrent.on('infoHash', () => onInfoHash(torrent, req, res, season, episode));
@@ -81,6 +94,8 @@ export function tvShows(app) {
         }
         else {
             console.log("no subtitles found for file", join(process.cwd(), filePath));
+            res.sendStatus(404);
+            res.end();
         }
     });
 
@@ -180,36 +195,21 @@ function onReady(torrent, port, req, res, season, episode) {
     }).resume();
 }
 
-async function getTVShowDataFromRequest(req, res) {
-    let tvShow = req.body.tvShow;
-
-    if (tvShow.startsWith("of ") || tvShow.startsWith(" of ")) {
-        tvShow = tvShow.replace("of", "");
-    }
-
-    tvShow = tvShow.replace(" ' ", "");
-    tvShow = tvShow.replace("'", "");
-    tvShow = tvShow.replace(/ \w /, " ");
-    tvShow = tvShow.replace("-", " ");
-    tvShow = tvShow.replace(/ +(?= )/g,'');
-
-    console.log("got request to stream tv show", tvShow);
+async function getTVShowDataFromRequest(tvShow, req) {
     let season = req.body.season;
     let episode = req.body.episode;
 
     if (!episode) {
-        console.log("Got request to stream the last episode of", tvShow);
-
         const showInfo = await safeGet(`http://api.tvmaze.com/singlesearch/shows?q=${tvShow}`);
-        const lastEpisodeInfo = await safeGet(showInfo._links.previousepisode.href);
+        const lastEpisodeInfo = await getLastEpisodeOfTVShow(tvShow);
         season = lastEpisodeInfo.season;
-        episode = lastEpisodeInfo.number;
+        episode = lastEpisodeInfo.episode;
     } else if (episode >= 100) {
         season = Math.floor(episode/100);
         episode = episode % 100;
     }
 
-    return { tvShow, season, episode };
+    return { season, episode };
 }
 
 async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
@@ -243,7 +243,7 @@ async function ensureTorrentForEpisode(tvShow, season, episode, res?) {
         const torrent = client.add(magnetLink, {path: join(process.cwd(), "./torrents"), announce: ['udp://public.popcorn-tracker.org:6969/announce']});
 
         downloadedTvShowEpisode = {
-            tvShow,
+            tvShowName: tvShow,
             season, 
             episode,
             magnetLink

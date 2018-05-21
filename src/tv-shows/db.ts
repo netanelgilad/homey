@@ -2,12 +2,12 @@ import * as low from "lowdb";
 import * as FileSync from "lowdb/adapters/FileSync";
 import { TVShowEpisode } from "./TVShow";
 
-const adapter = FileSync('tv-shows-db.json')
+const adapter = new FileSync('tv-shows-db.json')
 const db = low(adapter);
 
 const downloadedTvShowsEpisodes = "downloadedTvShowsEpisodes";
 
-db.defaults({ [downloadedTvShowsEpisodes]: [] }).write;
+db.defaults({ [downloadedTvShowsEpisodes]: [] }).write();
 
 export function saveDownloadedTvShowEpisode(tvShowEpisode: TVShowEpisode) {
     db.get(downloadedTvShowsEpisodes)

@@ -6,7 +6,8 @@
     "license": "ISC",
     "scripts": {
         "build": "botique build",
-        "dev": "botique dev"
+        "dev": "botique dev",
+        "start": "node ./lib/es2017/index.js"
     },
     "dependencies": {
         "axios": "^0.18.0",
