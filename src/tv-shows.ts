@@ -23,7 +23,7 @@ client.on('error', console.log);
 
 export function tvShows(app) {
     app.post('/tv-show/download', async (req, res) => {
-        const tvShow = canonizeTVShowName(req.params.tvShow);
+        const tvShow = canonizeTVShowName(req.body.tvShow);
         console.log("Got request to download an episode of ", tvShow);
 
         const {season, episode} = await getTVShowDataFromRequest(tvShow, req);
@@ -45,7 +45,7 @@ export function tvShows(app) {
     });
 
     app.post('/tv-show', async (req, res) => {
-        const tvShow = canonizeTVShowName(req.params.tvShow);
+        const tvShow = canonizeTVShowName(req.body.tvShow);
         console.log("Got request to stream an episode of ", tvShow);
 
         const {season, episode} = await getTVShowDataFromRequest(tvShow, req);
