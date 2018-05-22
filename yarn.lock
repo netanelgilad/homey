@@ -3554,6 +3554,10 @@ typedarray-to-buffer@^3.0.0:
   dependencies:
     is-typedarray "^1.0.0"
 
+typescript@^2.8.3:
+  version "2.8.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.8.3.tgz#5d817f9b6f31bb871835f4edf0089f21abe6c170"
+
 uint64be@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/uint64be/-/uint64be-1.0.1.tgz#1f7154202f2a1b8af353871dda651bf34ce93e95"

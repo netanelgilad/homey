@@ -29,6 +29,7 @@
         "webtorrent": "^0.99.4"
     },
     "devDependencies": {
-        "@botique/cli": "^0.3.0"
+        "@botique/cli": "^0.3.0",
+        "typescript": "^2.8.3"
     }
 }
