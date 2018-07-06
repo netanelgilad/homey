@@ -1,35 +1,36 @@
 {
-    "name": "broadlink-server",
-    "version": "0.0.1",
-    "main": "lib/es2017/index.js",
-    "author": "jor3l",
-    "license": "ISC",
-    "scripts": {
-        "build": "botique build",
-        "dev": "botique dev",
-        "start": "node ./lib/es2017/index.js"
-    },
-    "dependencies": {
-        "axios": "^0.18.0",
-        "base-64": "^0.1.0",
-        "body-parser": "^1.18.3",
-        "broadlinkjs-rm": "latest",
-        "chromecasts": "^1.9.1",
-        "cors": "latest",
-        "express": "latest",
-        "gunzip-maybe": "^1.4.1",
-        "helmet": "^3.12.1",
-        "lodash": "^4.17.10",
-        "lowdb": "^1.0.0",
-        "network-address": "^1.1.2",
-        "srt-to-vtt": "^1.1.2",
-        "subtitler": "^2.6.0",
-        "thepiratebay": "^1.4.7",
-        "utf8": "^3.0.0",
-        "webtorrent": "^0.99.4"
-    },
-    "devDependencies": {
-        "@botique/cli": "^0.3.0",
-        "typescript": "^2.8.3"
-    }
+  "name": "broadlink-server",
+  "version": "0.0.1",
+  "main": "./lib/es2017/index.js",
+  "author": "jor3l",
+  "license": "ISC",
+  "scripts": {
+    "build": "botique build",
+    "dev": "botique dev",
+    "start": "botique start",
+    "typecheck": "botique typecheck",
+    "assert": "botique assert"
+  },
+  "dependencies": {
+    "axios": "^0.18.0",
+    "base-64": "^0.1.0",
+    "body-parser": "^1.18.3",
+    "broadlinkjs-rm": "latest",
+    "chromecasts": "^1.9.1",
+    "cors": "latest",
+    "express": "latest",
+    "gunzip-maybe": "^1.4.1",
+    "helmet": "^3.12.1",
+    "lodash": "^4.17.10",
+    "lowdb": "^1.0.0",
+    "network-address": "^1.1.2",
+    "srt-to-vtt": "^1.1.2",
+    "subtitler": "^2.6.0",
+    "thepiratebay": "^1.4.7",
+    "tslib": "^1.9.2",
+    "utf8": "^3.0.0",
+    "webtorrent": "^0.99.4"
+  },
+  "devDependencies": { "@botique/cli": "^0.3.17" },
+  "browser": "./lib/es5/index.js"
 }
