@@ -8,7 +8,7 @@ import { Set } from "immutable";
 import { Device } from "./devices/Device";
 import { Database } from "./database/Database";
 import { Collection } from "./database/Collection";
-import { EmitCommandRestHandler } from "./devices/emitCommandRestHandler";
+import { EmitCommandRestHandler } from "./devices/EmitCommandRestHandler";
 import { DownloadTVShowRestHandler } from "./tv-shows/DownloadTVShowRestHandler";
 import { WebTorrentClient } from "./webtorrent/WebTorrentClient";
 import { TVShowEpisode } from "./tv-shows/TVShow";
