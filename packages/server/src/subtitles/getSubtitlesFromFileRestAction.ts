@@ -11,7 +11,7 @@ export const getSubtitlesFromFileRestAction: RestAction<
   },
   Readable
 > = {
-  path: "/subtitles/srt/:filePath",
+  path: "/subtitles/srt/{filePath}",
   method: "get",
   parameters: {
     filePath: {
