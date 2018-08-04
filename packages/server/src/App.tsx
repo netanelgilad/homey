@@ -21,7 +21,7 @@ export function App() {
   return (
     <>
       <Database filePath="homey.json">
-        <SwaggerServer port={3300}>
+        <SwaggerServer port={35601}>
           <State
             initialState={{
               activeDevices: Set<Device>()
