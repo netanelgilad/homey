@@ -61,7 +61,7 @@ export function SwaggerServer(props: {
                 app.use(middleware.swaggerMetadata());
                 app.use(
                   middleware.swaggerValidator({
-                    validateResponse: true
+                    validateResponse: false
                   })
                 );
                 app.use(

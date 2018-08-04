@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "main",
-            "program": "${workspaceFolder}/packages/server/lib/es2017/main.js"
+            "name": "index",
+            "program": "${workspaceFolder}/packages/server/lib/es2017/index.js"
         }
     ]
 }

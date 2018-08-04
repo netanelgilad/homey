@@ -240,8 +240,8 @@ export async function waitForTorrentBytes(
         start,
         end
       })
-      .on("error", reject)
-      .on("end", resolve);
+      .on("error", () => reject())
+      .on("end", () => resolve()).resume();
   });
 }
 
@@ -265,7 +265,7 @@ export async function getSubtitlesLink(
     subtitlesLink =
       "http://" +
       networkAddress() +
-      `:35601/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`;
+      `:35601/api/subtitles/srt/${encode(utf8.encode(englishSrtFile.path))}`;
     return new Promise<string>(resolve => {
       englishSrtFile.getBuffer(err => {
         if (err) {
@@ -288,7 +288,7 @@ export async function getSubtitlesLink(
     return (
       "http://" +
       networkAddress() +
-      `:35601/subtitles/${season}/${episode}/${encode(utf8.encode(filePath))}`
+      `:35601/api/subtitles/${season}/${episode}/${encode(utf8.encode(filePath))}`
     );
   }
 }

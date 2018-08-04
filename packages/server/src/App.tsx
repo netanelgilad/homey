@@ -15,7 +15,8 @@ import { TVShowEpisode } from "./tv-shows/TVShow";
 import { ChromecastsMonitor } from "./chromecasts/ChromecastsMonitor";
 import { Chromecast } from "./chromecasts/Chromecast";
 import { GetSubtitlesFromOpenSubtitlesRestHandler } from "./subtitles/GetSubtitlesFromOpenSubtitlesRestHandler";
-import { GetSubtitlesFromFileRestHandler } from './subtitles/GetSubtitlesFromFileRestHandler';
+import { GetSubtitlesFromFileRestHandler } from "./subtitles/GetSubtitlesFromFileRestHandler";
+import { StreamTVShowEpisodeRestHandler } from "./tv-shows/StreamTVShowEpisodeRestHandler";
 
 export function App() {
   return (
@@ -28,96 +29,115 @@ export function App() {
             }}
           >
             {({ state, setState }) => (
-              <Collection<Device> name="devices">
-                {({ collection }) => (
-                  <>
-                    <BroadlinkDevicesMonitor
-                      onNewDeviceDetected={async device => {
-                        const existingDeviceQuery = collection.find({
-                          host: { macAddress: device.host.macAddress }
-                        });
-                        if (!existingDeviceQuery.value()) {
-                          console.log(
-                            `Detected a new broadlink device with ip ${
-                              device.host.address
-                            }. Writing...`
-                          );
-                          collection.push(device).write();
-                        } else {
-                          existingDeviceQuery.merge(device).write();
-                        }
+              <>
+                <Collection<Device> name="devices">
+                  {({ collection }) => (
+                    <>
+                      <BroadlinkDevicesMonitor
+                        onNewDeviceDetected={async device => {
+                          const existingDeviceQuery = collection.find({
+                            host: { macAddress: device.host.macAddress }
+                          });
+                          if (!existingDeviceQuery.value()) {
+                            console.log(
+                              `Detected a new broadlink device with ip ${
+                                device.host.address
+                              }. Writing...`
+                            );
+                            collection.push(device).write();
+                          } else {
+                            existingDeviceQuery.merge(device).write();
+                          }
 
-                        console.log(
-                          `Broadlink device at ${
-                            device.host.address
-                          } is active.`
-                        );
-                        setState(state => ({
-                          activeDevices: state.activeDevices.add(device)
-                        }));
+                          console.log(
+                            `Broadlink device at ${
+                              device.host.address
+                            } is active.`
+                          );
+                          setState(state => ({
+                            activeDevices: state.activeDevices.add(device)
+                          }));
+                        }}
+                      />
+                      <RestActionHandler
+                        restAction={getDevicesRestAction}
+                        handler={async () => {
+                          return collection.value();
+                        }}
+                      />
+                      <EmitCommandRestHandler
+                        activeDevice={state.activeDevices.first()}
+                      />
+                    </>
+                  )}
+                </Collection>
+                <Collection<Chromecast> name="chromecasts">
+                  {({ collection }) => (
+                    <State
+                      initialState={{
+                        activeChromecasts: Set<Chromecast>()
                       }}
-                    />
-                    <RestActionHandler
-                      restAction={getDevicesRestAction}
-                      handler={async () => {
-                        return collection.value();
-                      }}
-                    />
-                    <EmitCommandRestHandler
-                      activeDevice={state.activeDevices.first()}
-                    />
-                  </>
-                )}
-              </Collection>
+                    >
+                      {({ state: chromecastsState, setState }) => (
+                        <>
+                          <ChromecastsMonitor
+                            onNewChromecastDiscovered={chromecast => {
+                              const existingChromecast = collection.find({
+                                name: chromecast.name
+                              });
+                              if (!existingChromecast.value()) {
+                                console.log(
+                                  `Discovered a new chromecast called ${
+                                    chromecast.name
+                                  }.`
+                                );
+                                collection.push(chromecast).write();
+                              }
+                              console.log(
+                                `Chromecast ${chromecast.name} is active.`
+                              );
+                              setState(state => ({
+                                activeChromecasts: state.activeChromecasts.add(
+                                  chromecast
+                                )
+                              }));
+                            }}
+                          />
+                          <WebTorrentClient>
+                            {({ client }) => (
+                              <Collection<
+                                TVShowEpisode
+                              > name="downloadedTvShows">
+                                {({ collection }) => (
+                                  <>
+                                    <DownloadTVShowRestHandler
+                                      client={client}
+                                      downloadedTVShowsCollection={collection}
+                                    />
+                                    <StreamTVShowEpisodeRestHandler
+                                      client={client}
+                                      
+                                      downloadedTVShowsCollection={collection}
+                                      activeDevice={state.activeDevices.first()}
+                                      activeChromecast={chromecastsState.activeChromecasts.find(
+                                        chromecast =>
+                                          chromecast.name.toLowerCase() ===
+                                          "living room tv"
+                                      )}
+                                    />
+                                  </>
+                                )}
+                              </Collection>
+                            )}
+                          </WebTorrentClient>
+                        </>
+                      )}
+                    </State>
+                  )}
+                </Collection>
+              </>
             )}
           </State>
-          <Collection<Chromecast> name="chromecasts">
-            {({ collection }) => (
-              <State
-                initialState={{
-                  activeChromecasts: Set<Chromecast>()
-                }}
-              >
-                {({ setState }) => (
-                  <>
-                    <ChromecastsMonitor
-                      onNewChromecastDiscovered={chromecast => {
-                        const existingChromecast = collection.find({
-                          name: chromecast.name
-                        });
-                        if (!existingChromecast.value()) {
-                          console.log(
-                            `Discovered a new chromecast called ${
-                              chromecast.name
-                            }.`
-                          );
-                          collection.push(chromecast).write();
-                        }
-                        console.log(`Chromecast ${chromecast.name} is active.`);
-                        setState(state => ({
-                          activeChromecasts: state.activeChromecasts.add(
-                            chromecast
-                          )
-                        }));
-                      }}
-                    />
-                    <WebTorrentClient>
-                      {({ client }) => (
-                        <Collection<TVShowEpisode> name="downloadedTvShows">
-                          {({ collection }) => (
-                            <DownloadTVShowRestHandler
-                              client={client}
-                              downloadedTVShowsCollection={collection}
-                            />
-                          )}
-                        </Collection>
-                      )}
-                    </WebTorrentClient>
-                  </>
-                )}
-              </State>
-            )}
-          </Collection>
           <GetSubtitlesFromOpenSubtitlesRestHandler />
           <GetSubtitlesFromFileRestHandler />
         </SwaggerServer>
