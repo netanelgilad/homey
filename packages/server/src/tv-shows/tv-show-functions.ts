@@ -38,7 +38,7 @@ export async function downloadTVShowEpisode(
     torrent: await ensureTorrentForEpisode(
       client,
       downloadedTVShowsCollection,
-      tvShow,
+      tvShowName,
       foundSeason,
       foundEpisode
     ),
