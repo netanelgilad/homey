@@ -16,10 +16,6 @@
     esutils "^2.0.2"
     js-tokens "^3.0.0"
 
-"@botique/react-behavior@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@botique/react-behavior/-/react-behavior-0.0.4.tgz#1fd67ff6330bf6b8a65a0cbe0bea43627aa6a472"
-
 "@botique/smartmon@^0.1.7":
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/@botique/smartmon/-/smartmon-0.1.7.tgz#0e712fc03bb79d8ccd2e098efb979f535149887b"
@@ -34,11 +30,10 @@
     tslib "^1.9.2"
     watchpack "^1.4.0"
 
-"@react-atoms/core@^0.0.12":
-  version "0.0.12"
-  resolved "https://registry.yarnpkg.com/@react-atoms/core/-/core-0.0.12.tgz#dd332e09b769a68e8c5cc770108c05b1c9663bd6"
+"@react-atoms/core@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@react-atoms/core/-/core-0.0.13.tgz#dbbf5d03858b41edea1b6f089d14221c3d6b537b"
   dependencies:
-    "@botique/react-behavior" "^0.0.4"
     react-reconciler "^0.12.0"
     tslib "^1.9.2"
 

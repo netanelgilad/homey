@@ -19,7 +19,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@react-atoms/core": "^0.0.12",
+    "@react-atoms/core": "^0.0.13",
     "axios": "^0.18.0",
     "base-64": "^0.1.0",
     "body-parser": "^1.18.3",
