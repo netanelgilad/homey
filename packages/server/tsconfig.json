@@ -5,18 +5,20 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "lib": ["es2017", "dom"],
-    "skipLibCheck": false,
-    "skipDefaultLibCheck": false,
     "jsx": "react",
     "rootDir": "./src",
-    "sourceMap": true,
+    "inlineSourceMap": true,
+    "inlineSources": true,
     "declaration": false,
     "importHelpers": true,
     "noUnusedParameters": true,
     "noUnusedLocals": true,
     "target": "es2017",
-    "noEmit": true,
-    "pretty": true
+    "pretty": true,
+    "outDir": "./lib/es2017"
   },
-  "include": ["src/**/*", "typings/**/*"]
+  "include": ["src/**/*", "typings/**/*"],
+  "exclude": [
+    "node_modules"
+  ]
 }
