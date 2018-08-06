@@ -27,7 +27,7 @@
     "castv2": "^0.1.9",
     "chromecasts": "^1.9.1",
     "connect": "^3.6.6",
-    "cors": "latest",
+    "cors": "^2.8.4",
     "express": "latest",
     "gunzip-maybe": "^1.4.1",
     "helmet": "^3.12.1",

@@ -1,8 +1,11 @@
 import { canonizeTVShowName, TVShowEpisode } from "./TVShow";
-import { getLastEpisodeOfTVShow } from "./getLastEpisodeOfTVShow";
+import {
+  getLastEpisodeOfTVShow,
+  getTVShowEpisodes
+} from "./getLastEpisodeOfTVShow";
 import { Instance, Torrent } from "webtorrent";
 import { LowCollection } from "../database/Collection";
-import { join } from "path";
+import { join, basename, extname } from "path";
 import { search } from "thepiratebay";
 import { pad } from "../utils";
 import { AddressInfo } from "net";
@@ -10,7 +13,7 @@ import * as networkAddress from "network-address";
 import { Device } from "../devices/Device";
 import { emitCommand } from "../devices/runCommand";
 import { ChangeToChromecastCommand } from "../devices/AllDeviceCommands";
-import { find, endsWith, includes } from "lodash";
+import { find, endsWith, includes, sample, replace } from "lodash";
 import { encode } from "base-64";
 import * as utf8 from "utf8";
 import { Chromecast } from "../chromecasts/Chromecast";
@@ -86,7 +89,7 @@ export async function streamTVShowEpisode(
 
   const href =
     "http://" + networkAddress() + ":" + serverPort + "/" + largestFileIndex;
-    
+
   const subtitlesLink = await getSubtitlesLink(
     torrent,
     foundSeason,
@@ -99,6 +102,28 @@ export async function streamTVShowEpisode(
     subtitles: [subtitlesLink],
     autoSubtitles: true
   });
+}
+
+export async function streamRandomTVShowEpisode(
+  client: Instance,
+  downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
+  activeDevice: Device,
+  activeChromecast: Chromecast,
+  tvShow: string
+) {
+  const tvShowName = canonizeTVShowName(tvShow);
+  const tVShowEpisodes = await getTVShowEpisodes(tvShowName);
+  const randomEpisode = sample(tVShowEpisodes);
+
+  await streamTVShowEpisode(
+    client,
+    downloadedTVShowsCollection,
+    activeDevice,
+    activeChromecast,
+    tvShowName,
+    randomEpisode.season,
+    randomEpisode.number
+  );
 }
 
 export async function getTVShowData(
@@ -241,7 +266,8 @@ export async function waitForTorrentBytes(
         end
       })
       .on("error", () => reject())
-      .on("end", () => resolve()).resume();
+      .on("end", () => resolve())
+      .resume();
   });
 }
 
@@ -254,9 +280,11 @@ export async function getSubtitlesLink(
   const englishSrtFile = find(
     torrent.files,
     file =>
-      endsWith(file.path, ".srt") &&
-      (includes(file.path.toLowerCase(), "english") ||
-        includes(file.path.toLowerCase(), "eng"))
+      (endsWith(file.path, ".srt") &&
+        (includes(file.path.toLowerCase(), "english") ||
+          includes(file.path.toLowerCase(), "eng"))) ||
+      replace(basename(filePath), extname(filePath), "") ===
+        basename(file.path, ".srt")
   );
 
   let subtitlesLink;
@@ -288,7 +316,9 @@ export async function getSubtitlesLink(
     return (
       "http://" +
       networkAddress() +
-      `:35601/api/subtitles/${season}/${episode}/${encode(utf8.encode(filePath))}`
+      `:35601/api/subtitles/${season}/${episode}/${encode(
+        utf8.encode(filePath)
+      )}`
     );
   }
 }

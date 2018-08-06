@@ -12,6 +12,7 @@ import { map, mapValues } from "lodash";
 import { v4 } from "uuid";
 import { RestParameterLocation, RestResponseType } from "../rest-actions/RestAction";
 import { Map } from "immutable";
+import * as cors from "cors";
 
 export function SwaggerServer(props: {
   port: number;
@@ -52,6 +53,7 @@ export function SwaggerServer(props: {
           <Lifecycle
             onDidMount={() => {
               const app = connect();
+              app.use(cors());
               const { controllers, spec } = getSwaggerObject(
                 getValue().routes,
                 (routeId) => getValue().handlers.get(routeId)

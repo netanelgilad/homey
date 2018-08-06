@@ -4,7 +4,7 @@ import { SwaggerServer } from "./swagger/SwaggerServer";
 import { RestActionHandler } from "./rest-actions/RestActionHandler";
 import { getDevicesRestAction } from "./devices/getDevicesRestAction";
 import { State } from "@react-atoms/core";
-import { Set } from "immutable";
+import { Set, Map } from "immutable";
 import { Device } from "./devices/Device";
 import { Database } from "./database/Database";
 import { Collection } from "./database/Collection";
@@ -17,6 +17,7 @@ import { Chromecast } from "./chromecasts/Chromecast";
 import { GetSubtitlesFromOpenSubtitlesRestHandler } from "./subtitles/GetSubtitlesFromOpenSubtitlesRestHandler";
 import { GetSubtitlesFromFileRestHandler } from "./subtitles/GetSubtitlesFromFileRestHandler";
 import { StreamTVShowEpisodeRestHandler } from "./tv-shows/StreamTVShowEpisodeRestHandler";
+import { StreamRandomTVShowEpisodeRestHandler } from "./tv-shows/StreamRandomTVShowEpisodeRestHandler";
 
 export function App() {
   return (
@@ -71,70 +72,60 @@ export function App() {
                     </>
                   )}
                 </Collection>
-                <Collection<Chromecast> name="chromecasts">
-                  {({ collection }) => (
-                    <State
-                      initialState={{
-                        activeChromecasts: Set<Chromecast>()
-                      }}
-                    >
-                      {({ state: chromecastsState, setState }) => (
-                        <>
-                          <ChromecastsMonitor
-                            onNewChromecastDiscovered={chromecast => {
-                              const existingChromecast = collection.find({
-                                name: chromecast.name
-                              });
-                              if (!existingChromecast.value()) {
-                                console.log(
-                                  `Discovered a new chromecast called ${
-                                    chromecast.name
-                                  }.`
-                                );
-                                collection.push(chromecast).write();
-                              }
-                              console.log(
-                                `Chromecast ${chromecast.name} is active.`
-                              );
-                              setState(state => ({
-                                activeChromecasts: state.activeChromecasts.add(
-                                  chromecast
-                                )
-                              }));
-                            }}
-                          />
-                          <WebTorrentClient>
-                            {({ client }) => (
-                              <Collection<
-                                TVShowEpisode
-                              > name="downloadedTvShows">
-                                {({ collection }) => (
-                                  <>
-                                    <DownloadTVShowRestHandler
-                                      client={client}
-                                      downloadedTVShowsCollection={collection}
-                                    />
-                                    <StreamTVShowEpisodeRestHandler
-                                      client={client}
-                                      
-                                      downloadedTVShowsCollection={collection}
-                                      activeDevice={state.activeDevices.first()}
-                                      activeChromecast={chromecastsState.activeChromecasts.find(
-                                        chromecast =>
-                                          chromecast.name.toLowerCase() ===
-                                          "living room tv"
-                                      )}
-                                    />
-                                  </>
-                                )}
-                              </Collection>
+
+                <State
+                  initialState={{
+                    activeChromecasts: Map<string, Chromecast>()
+                  }}
+                >
+                  {({ state: chromecastsState, setState }) => (
+                    <>
+                      <ChromecastsMonitor
+                        onNewChromecastDiscovered={chromecast => {
+                          console.log(
+                            `Chromecast ${chromecast.name} is active.`
+                          );
+                          setState(state => ({
+                            activeChromecasts: state.activeChromecasts.set(
+                              chromecast.name,
+                              chromecast
+                            )
+                          }));
+                        }}
+                      />
+                      <WebTorrentClient>
+                        {({ client }) => (
+                          <Collection<TVShowEpisode> name="downloadedTvShows">
+                            {({ collection }) => (
+                              <>
+                                <DownloadTVShowRestHandler
+                                  client={client}
+                                  downloadedTVShowsCollection={collection}
+                                />
+                                <StreamTVShowEpisodeRestHandler
+                                  client={client}
+                                  downloadedTVShowsCollection={collection}
+                                  activeDevice={state.activeDevices.first()}
+                                  activeChromecast={chromecastsState.activeChromecasts.get(
+                                    "Netanels Macbook Pro"
+                                  )}
+                                />
+                                <StreamRandomTVShowEpisodeRestHandler
+                                  client={client}
+                                  downloadedTVShowsCollection={collection}
+                                  activeDevice={state.activeDevices.first()}
+                                  activeChromecast={chromecastsState.activeChromecasts.get(
+                                    "Netanels Macbook Pro"
+                                  )}
+                                />
+                              </>
                             )}
-                          </WebTorrentClient>
-                        </>
-                      )}
-                    </State>
+                          </Collection>
+                        )}
+                      </WebTorrentClient>
+                    </>
                   )}
-                </Collection>
+                </State>
               </>
             )}
           </State>
