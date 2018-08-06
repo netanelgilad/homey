@@ -1,6 +1,6 @@
 {
   "name": "@homey/server",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "./lib/es2017/index.js",
   "workspaces": {
     "nohoist": [
