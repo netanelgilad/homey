@@ -1,12 +1,7 @@
 {
   "name": "@homey/server",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "main": "./lib/es2017/index.js",
-  "workspaces": {
-    "nohoist": [
-      "@botique/smartmon/**"
-    ]
-  },
   "files": [
     "lib"
   ],
@@ -16,13 +11,13 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "start": "smartmon --inspect=0.0.0.0:5858 ./lib/es2017/index.js",
-    "typecheck": "botique typecheck",
-    "assert": "botique assert",
+    "start": "smartmon --inspect ./lib/es2017/index.js",
+    "typecheck": "tsc --noEmit",
     "clean": "rm -rf ./lib",
-    "test": "botique test",
+    "test": "jest",
     "precommit": "lint-staged",
-    "prepublish": "yarn build"
+    "publish": "docker build -t netanelgilad/homey:$npm_package_version . && docker publish netanelgilad/homey:$npm_package_version",
+    "prepublishOnly": "yarn build"
   },
   "dependencies": {
     "@react-atoms/core": "^0.0.13",
@@ -31,8 +26,8 @@
     "broadlinkjs-rm": "latest",
     "castv2": "^0.1.9",
     "chromecasts": "^1.9.1",
-    "connect": "^3.6.6",
     "cors": "^2.8.4",
+    "express": "^4.16.3",
     "gunzip-maybe": "^1.4.1",
     "immutable": "^3.8.2",
     "lodash": "^4.17.10",
