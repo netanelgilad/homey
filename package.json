@@ -1,13 +1,19 @@
 {
   "name": "homey",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": [
+      "**/@types/react",
+      "**/@react-atoms/core"
+    ]
+  },
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/netanelgilad/homey.git",
-  "author": "Netanel Gilad <netanel@botique.ai>",
+  "author": "Netanel Gilad <netanelgilad@gmail.com>",
   "license": "MIT",
   "scripts": {
     "clean-deps": "rm -rf ./node_modules packages/*/node_modules"

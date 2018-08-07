@@ -10,7 +10,8 @@ export function BroadlinkDevicesMonitor(props: {
   return (
     <State
       initialState={{
-        broadlink: undefined
+        broadlink: undefined,
+        didFind : false
       }}
     >
       {({ state, setState }) => (
@@ -31,6 +32,12 @@ export function BroadlinkDevicesMonitor(props: {
               const macAddress = macAddressParts.join(":");
               device.host.macAddress = macAddress;
 
+              console.log("Broadlink device found, stopping monitor...");
+
+              setState({
+                didFind: true
+              });
+
               props.onNewDeviceDetected({
                 host: device.host,
                 model: device.model,
@@ -42,7 +49,7 @@ export function BroadlinkDevicesMonitor(props: {
             console.log("Stopped monitoring for broadlink devices...");
           }}
         >
-          {state.broadlink ? (
+          {state.broadlink && !state.didFind ? (
             <Interval
               interval={props.monitorInterval || 5000}
               run={() => {

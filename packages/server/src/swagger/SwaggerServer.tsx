@@ -1,91 +1,98 @@
 import * as React from "react";
 import { Lifecycle, Variable } from "@react-atoms/core";
 import { initializeMiddleware } from "swagger-tools";
-import * as connect from "connect";
-import { createServer } from "http";
-import { RestRouteRegistrarContext, RouteID } from "../rest-actions/RestRouteRegistrarContext";
+import {
+  RestRouteRegistrarContext,
+  RouteID
+} from "../rest-actions/RestRouteRegistrarContext";
 import {
   RestActionHandlerType,
   RestActionHandlerFunction
 } from "../rest-actions/RestActionHandler";
 import { map, mapValues } from "lodash";
 import { v4 } from "uuid";
-import { RestParameterLocation, RestResponseType } from "../rest-actions/RestAction";
+import {
+  RestParameterLocation,
+  RestResponseType
+} from "../rest-actions/RestAction";
 import { Map } from "immutable";
-import * as cors from "cors";
+import { ExpressServerContext } from '../express/ExpressServer';
 
 export function SwaggerServer(props: {
-  port: number;
   children?: React.ReactNode;
 }) {
   return (
-    <Variable
-      initialValue={{
-        routeId: 0,
-        routes: Map<number, RestActionHandlerType>(),
-        handlers: Map<number, RestActionHandlerFunction>()
-      }}
-    >
-      {({ getValue, setValue }) => (
-        <RestRouteRegistrarContext.Provider
-          value={{
-            registerRoute(restActionHandler) {
-              const newRouteId = getValue().routeId + 1;
-
-              setValue({
-                handlers: getValue().handlers.set(
-                  newRouteId,
-                  restActionHandler.handler
-                ),
-                routes: getValue().routes.set(newRouteId, restActionHandler),
-                routeId: newRouteId
-              });
-
-              return newRouteId;
-            },
-            updateRouteHandler(routeId, handler) {
-              setValue({
-                handlers: getValue().handlers.set(routeId, handler)
-              });
-            }
+    <ExpressServerContext.Consumer>
+      {({ app }) => (
+        <Variable
+          initialValue={{
+            routeId: 0,
+            routes: Map<number, RestActionHandlerType>(),
+            handlers: Map<number, RestActionHandlerFunction>()
           }}
         >
-          <Lifecycle
-            onDidMount={() => {
-              const app = connect();
-              app.use(cors());
-              const { controllers, spec } = getSwaggerObject(
-                getValue().routes,
-                (routeId) => getValue().handlers.get(routeId)
-              );
+          {({ getValue, setValue }) => (
+            <RestRouteRegistrarContext.Provider
+              value={{
+                registerRoute(restActionHandler) {
+                  const newRouteId = getValue().routeId + 1;
 
-              initializeMiddleware(spec, middleware => {
-                app.use(middleware.swaggerMetadata());
-                app.use(
-                  middleware.swaggerValidator({
-                    validateResponse: false
-                  })
-                );
-                app.use(
-                  middleware.swaggerRouter({
-                    controllers
-                  })
-                );
-                app.use(middleware.swaggerUi());
-                createServer(app).listen(props.port);
-              });
-            }}
-          >
-            {props.children || null}
-          </Lifecycle>
-        </RestRouteRegistrarContext.Provider>
+                  setValue({
+                    handlers: getValue().handlers.set(
+                      newRouteId,
+                      restActionHandler.handler
+                    ),
+                    routes: getValue().routes.set(
+                      newRouteId,
+                      restActionHandler
+                    ),
+                    routeId: newRouteId
+                  });
+
+                  return newRouteId;
+                },
+                updateRouteHandler(routeId, handler) {
+                  setValue({
+                    handlers: getValue().handlers.set(routeId, handler)
+                  });
+                }
+              }}
+            >
+              <Lifecycle
+                onDidMount={() => {
+                  const { controllers, spec } = getSwaggerObject(
+                    getValue().routes,
+                    routeId => getValue().handlers.get(routeId)
+                  );
+
+                  initializeMiddleware(spec, middleware => {
+                    app.use(middleware.swaggerMetadata());
+                    app.use(
+                      middleware.swaggerValidator({
+                        validateResponse: false
+                      })
+                    );
+                    app.use(
+                      middleware.swaggerRouter({
+                        controllers
+                      })
+                    );
+                    app.use(middleware.swaggerUi());
+                  });
+                }}
+              >
+                {props.children || null}
+              </Lifecycle>
+            </RestRouteRegistrarContext.Provider>
+          )}
+        </Variable>
       )}
-    </Variable>
+    </ExpressServerContext.Consumer>
   );
 }
 
 export function getSwaggerObject(
-  routes: Map<RouteID,RestActionHandlerType>,
+  routes: Map<RouteID, RestActionHandlerType>,
   getHandler: (routeId: RouteID) => RestActionHandlerFunction
 ) {
   const { controllers, paths } = routes.reduce(
@@ -111,10 +118,12 @@ export function getSwaggerObject(
               const result = await handler(
                 mapValues(req.swagger.params, "value")
               );
-              if (restActionHandler.restAction.responseType === RestResponseType.Stream) {
+              if (
+                restActionHandler.restAction.responseType ===
+                RestResponseType.Stream
+              ) {
                 result.pipe(res);
-              }
-              else {
+              } else {
                 res.end(JSON.stringify(result));
               }
             } catch (err) {

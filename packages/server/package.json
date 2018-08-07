@@ -16,14 +16,13 @@
     "clean": "rm -rf ./lib",
     "test": "jest",
     "precommit": "lint-staged",
-    "publish": "docker build -t netanelgilad/homey:$npm_package_version . && docker publish netanelgilad/homey:$npm_package_version",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn clean && yarn build && cd ../frontend && yarn build && mv ./build ../server/lib/frontend"
   },
   "dependencies": {
+    "broadlinkjs-rm": "^0.6.0",
     "@react-atoms/core": "^0.0.13",
     "axios": "^0.18.0",
     "base-64": "^0.1.0",
-    "broadlinkjs-rm": "latest",
     "castv2": "^0.1.9",
     "chromecasts": "^1.9.1",
     "cors": "^2.8.4",
@@ -43,7 +42,7 @@
     "tslib": "^1.9.2",
     "utf8": "^3.0.0",
     "uuid": "^3.3.2",
-    "webtorrent": "^0.99.4"
+    "webtorrent": "^0.102.0"
   },
   "devDependencies": {
     "@botique/smartmon": "^0.1.7",
@@ -56,10 +55,10 @@
     "@types/react": "^16.4.6",
     "@types/webtorrent": "^0.98.4",
     "husky": "^0.14.3",
-    "jest": "^22.4.4",
+    "jest": "^23.4.2",
     "lint-staged": "^7.2.0",
     "react-devtools-core": "^3.2.3",
-    "ts-jest": "^22.4.6",
+    "ts-jest": "^23.1.3",
     "typescript": "^3.0.1",
     "websocket": "^1.0.26"
   },

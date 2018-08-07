@@ -18,120 +18,129 @@ import { GetSubtitlesFromOpenSubtitlesRestHandler } from "./subtitles/GetSubtitl
 import { GetSubtitlesFromFileRestHandler } from "./subtitles/GetSubtitlesFromFileRestHandler";
 import { StreamTVShowEpisodeRestHandler } from "./tv-shows/StreamTVShowEpisodeRestHandler";
 import { StreamRandomTVShowEpisodeRestHandler } from "./tv-shows/StreamRandomTVShowEpisodeRestHandler";
+import { ExpressServer } from "./express/ExpressServer";
+import { StaticFilesMiddleware } from "./express/StaticFilesMiddleware";
 
 export function App() {
   return (
     <>
       <Database filePath="homey.json">
-        <SwaggerServer port={35601}>
-          <State
-            initialState={{
-              activeDevices: Set<Device>()
-            }}
-          >
-            {({ state, setState }) => (
-              <>
-                <Collection<Device> name="devices">
-                  {({ collection }) => (
-                    <>
-                      <BroadlinkDevicesMonitor
-                        onNewDeviceDetected={async device => {
-                          const existingDeviceQuery = collection.find({
-                            host: { macAddress: device.host.macAddress }
-                          });
-                          if (!existingDeviceQuery.value()) {
-                            console.log(
-                              `Detected a new broadlink device with ip ${
-                                device.host.address
-                              }. Writing...`
-                            );
-                            collection.push(device).write();
-                          } else {
-                            existingDeviceQuery.merge(device).write();
-                          }
+        <ExpressServer port={35601}>
+          <>
+            <SwaggerServer>
+              <State
+                initialState={{
+                  activeDevices: Set<Device>()
+                }}
+              >
+                {({ state, setState }) => (
+                  <>
+                    <Collection<Device> name="devices">
+                      {({ collection }) => (
+                        <>
+                          <BroadlinkDevicesMonitor
+                            onNewDeviceDetected={async device => {
+                              const existingDeviceQuery = collection.find({
+                                host: { macAddress: device.host.macAddress }
+                              });
+                              if (!existingDeviceQuery.value()) {
+                                console.log(
+                                  `Detected a new broadlink device with ip ${
+                                    device.host.address
+                                  }. Writing...`
+                                );
+                                collection.push(device).write();
+                              } else {
+                                existingDeviceQuery.merge(device).write();
+                              }
 
-                          console.log(
-                            `Broadlink device at ${
-                              device.host.address
-                            } is active.`
-                          );
-                          setState(state => ({
-                            activeDevices: state.activeDevices.add(device)
-                          }));
-                        }}
-                      />
-                      <RestActionHandler
-                        restAction={getDevicesRestAction}
-                        handler={async () => {
-                          return collection.value();
-                        }}
-                      />
-                      <EmitCommandRestHandler
-                        activeDevice={state.activeDevices.first()}
-                      />
-                    </>
-                  )}
-                </Collection>
+                              console.log(
+                                `Broadlink device at ${
+                                  device.host.address
+                                } is active.`
+                              );
+                              setState(state => ({
+                                activeDevices: state.activeDevices.add(device)
+                              }));
+                            }}
+                          />
+                          <RestActionHandler
+                            restAction={getDevicesRestAction}
+                            handler={async () => {
+                              return collection.value();
+                            }}
+                          />
+                          <EmitCommandRestHandler
+                            activeDevice={state.activeDevices.first()}
+                          />
+                        </>
+                      )}
+                    </Collection>
 
-                <State
-                  initialState={{
-                    activeChromecasts: Map<string, Chromecast>()
-                  }}
-                >
-                  {({ state: chromecastsState, setState }) => (
-                    <>
-                      <ChromecastsMonitor
-                        onNewChromecastDiscovered={chromecast => {
-                          console.log(
-                            `Chromecast ${chromecast.name} is active.`
-                          );
-                          setState(state => ({
-                            activeChromecasts: state.activeChromecasts.set(
-                              chromecast.name,
-                              chromecast
-                            )
-                          }));
-                        }}
-                      />
-                      <WebTorrentClient>
-                        {({ client }) => (
-                          <Collection<TVShowEpisode> name="downloadedTvShows">
-                            {({ collection }) => (
-                              <>
-                                <DownloadTVShowRestHandler
-                                  client={client}
-                                  downloadedTVShowsCollection={collection}
-                                />
-                                <StreamTVShowEpisodeRestHandler
-                                  client={client}
-                                  downloadedTVShowsCollection={collection}
-                                  activeDevice={state.activeDevices.first()}
-                                  activeChromecast={chromecastsState.activeChromecasts.get(
-                                    "Netanels Macbook Pro"
-                                  )}
-                                />
-                                <StreamRandomTVShowEpisodeRestHandler
-                                  client={client}
-                                  downloadedTVShowsCollection={collection}
-                                  activeDevice={state.activeDevices.first()}
-                                  activeChromecast={chromecastsState.activeChromecasts.get(
-                                    "Netanels Macbook Pro"
-                                  )}
-                                />
-                              </>
+                    <State
+                      initialState={{
+                        activeChromecasts: Map<string, Chromecast>()
+                      }}
+                    >
+                      {({ state: chromecastsState, setState }) => (
+                        <>
+                          <ChromecastsMonitor
+                            onNewChromecastDiscovered={chromecast => {
+                              console.log(
+                                `Chromecast ${chromecast.name} is active.`
+                              );
+                              setState(state => ({
+                                activeChromecasts: state.activeChromecasts.set(
+                                  chromecast.name,
+                                  chromecast
+                                )
+                              }));
+                            }}
+                          />
+                          <WebTorrentClient>
+                            {({ client }) => (
+                              <Collection<
+                                TVShowEpisode
+                              > name="downloadedTvShows">
+                                {({ collection }) => (
+                                  <>
+                                    <DownloadTVShowRestHandler
+                                      client={client}
+                                      downloadedTVShowsCollection={collection}
+                                    />
+                                    <StreamTVShowEpisodeRestHandler
+                                      client={client}
+                                      downloadedTVShowsCollection={collection}
+                                      activeDevice={state.activeDevices.first()}
+                                      activeChromecast={chromecastsState.activeChromecasts.get(
+                                        "Netanels Macbook Pro"
+                                      )}
+                                    />
+                                    <StreamRandomTVShowEpisodeRestHandler
+                                      client={client}
+                                      downloadedTVShowsCollection={collection}
+                                      activeDevice={state.activeDevices.first()}
+                                      activeChromecast={chromecastsState.activeChromecasts.get(
+                                        "Netanels Macbook Pro"
+                                      )}
+                                    />
+                                  </>
+                                )}
+                              </Collection>
                             )}
-                          </Collection>
-                        )}
-                      </WebTorrentClient>
-                    </>
-                  )}
-                </State>
-              </>
-            )}
-          </State>
-          <GetSubtitlesFromOpenSubtitlesRestHandler />
-          <GetSubtitlesFromFileRestHandler />
-        </SwaggerServer>
+                          </WebTorrentClient>
+                        </>
+                      )}
+                    </State>
+                  </>
+                )}
+              </State>
+              <GetSubtitlesFromOpenSubtitlesRestHandler />
+              <GetSubtitlesFromFileRestHandler />
+            </SwaggerServer>
+            <StaticFilesMiddleware path="./lib/frontend" />
+          </>
+        </ExpressServer>
       </Database>
     </>
   );
