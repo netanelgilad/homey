@@ -1,6 +1,6 @@
 {
   "name": "@homey/server",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "main": "./lib/es2017/index.js",
   "files": [
     "lib"
@@ -19,10 +19,10 @@
     "prepublishOnly": "yarn clean && yarn build && cd ../frontend && yarn build && mv ./build ../server/lib/frontend"
   },
   "dependencies": {
-    "broadlinkjs-rm": "^0.6.0",
     "@react-atoms/core": "^0.0.13",
     "axios": "^0.18.0",
     "base-64": "^0.1.0",
+    "broadlinkjs-rm": "^0.6.0",
     "castv2": "^0.1.9",
     "chromecasts": "^1.9.1",
     "cors": "^2.8.4",
