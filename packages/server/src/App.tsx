@@ -20,6 +20,7 @@ import { StreamTVShowEpisodeRestHandler } from "./tv-shows/StreamTVShowEpisodeRe
 import { StreamRandomTVShowEpisodeRestHandler } from "./tv-shows/StreamRandomTVShowEpisodeRestHandler";
 import { ExpressServer } from "./express/ExpressServer";
 import { StaticFilesMiddleware } from "./express/StaticFilesMiddleware";
+import { resolve } from 'path';
 
 export function App() {
   return (
@@ -138,7 +139,7 @@ export function App() {
               <GetSubtitlesFromOpenSubtitlesRestHandler />
               <GetSubtitlesFromFileRestHandler />
             </SwaggerServer>
-            <StaticFilesMiddleware path="./lib/frontend" />
+            <StaticFilesMiddleware path={resolve(__dirname, "./lib/frontend")} />
           </>
         </ExpressServer>
       </Database>
