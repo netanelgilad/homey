@@ -139,7 +139,7 @@ export function App() {
               <GetSubtitlesFromOpenSubtitlesRestHandler />
               <GetSubtitlesFromFileRestHandler />
             </SwaggerServer>
-            <StaticFilesMiddleware path={resolve(__dirname, "./lib/frontend")} />
+            <StaticFilesMiddleware path={resolve(__dirname, "../frontend")} />
           </>
         </ExpressServer>
       </Database>
