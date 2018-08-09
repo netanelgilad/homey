@@ -27,127 +27,142 @@ import {
   ChromecastSideEffects,
   ChromecastSideEffectsContext
 } from "./chromecasts/ChromecastSideEffects";
+import {
+  RemoteSideEffects,
+  RemoteSideEffectsContext
+} from "./devices/RemoteSideEffects";
+import { ChangeToChromecastCommand } from "./devices/AllDeviceCommands";
 
 export function App() {
   return (
-    <ChromecastSideEffects name="Living Room TV">
-      <Database filePath="homey.json">
-        <ExpressServer port={35601}>
-          <>
-            <SwaggerServer>
-              <State
-                initialState={{
-                  activeDevices: Set<Device>()
-                }}
-              >
-                {({ state, setState }) => (
-                  <>
-                    <Collection<Device> name="devices">
-                      {({ collection }) => (
-                        <>
-                          <BroadlinkDevicesMonitor
-                            onNewDeviceDetected={async device => {
-                              const existingDeviceQuery = collection.find({
-                                host: { macAddress: device.host.macAddress }
-                              });
-                              if (!existingDeviceQuery.value()) {
+    <RemoteSideEffects>
+      <ChromecastSideEffects name="Living Room TV">
+        <Database filePath="homey.json">
+          <ExpressServer port={35601}>
+            <>
+              <SwaggerServer>
+                <State
+                  initialState={{
+                    activeDevices: Set<Device>()
+                  }}
+                >
+                  {({ state, setState }) => (
+                    <>
+                      <Collection<Device> name="devices">
+                        {({ collection }) => (
+                          <>
+                            <BroadlinkDevicesMonitor
+                              onNewDeviceDetected={async device => {
+                                const existingDeviceQuery = collection.find({
+                                  host: { macAddress: device.host.macAddress }
+                                });
+                                if (!existingDeviceQuery.value()) {
+                                  console.log(
+                                    `Detected a new broadlink device with ip ${
+                                      device.host.address
+                                    }. Writing... `
+                                  );
+                                  collection.push(device).write();
+                                } else {
+                                  existingDeviceQuery.merge(device).write();
+                                }
+
                                 console.log(
-                                  `Detected a new broadlink device with ip ${
+                                  `Broadlink device at ${
                                     device.host.address
-                                  }. Writing... `
+                                  } is active.`
                                 );
-                                collection.push(device).write();
-                              } else {
-                                existingDeviceQuery.merge(device).write();
-                              }
+                                setState(state => ({
+                                  activeDevices: state.activeDevices.add(device)
+                                }));
+                              }}
+                            />
+                            <RestActionHandler
+                              restAction={getDevicesRestAction}
+                              handler={async () => collection.value()}
+                            />
+                            <EmitCommandRestHandler
+                              activeDevice={state.activeDevices.first()}
+                            />
+                          </>
+                        )}
+                      </Collection>
 
-                              console.log(
-                                `Broadlink device at ${
-                                  device.host.address
-                                } is active.`
-                              );
-                              setState(state => ({
-                                activeDevices: state.activeDevices.add(device)
-                              }));
-                            }}
-                          />
-                          <RestActionHandler
-                            restAction={getDevicesRestAction}
-                            handler={async () => collection.value()}
-                          />
-                          <EmitCommandRestHandler
-                            activeDevice={state.activeDevices.first()}
-                          />
-                        </>
+                      <WebTorrentClient>
+                        {({ client }) => (
+                          <>
+                            <GetTorrentsRestHandler client={client} />
+                            <Collection<TVShowEpisode> name="downloadedTvShows">
+                              {({ collection }) => (
+                                <>
+                                  <Lifecycle
+                                    onDidMount={() => {
+                                      console.log(
+                                        `Adding existing ${collection
+                                          .size()
+                                          .value()} torrents.`
+                                      );
+                                      const existing = collection.value();
+                                      existing.forEach(downloadedTvShow =>
+                                        addTorrentToClient(
+                                          client,
+                                          downloadedTvShow.magnetLink
+                                        )
+                                      );
+                                    }}
+                                  />
+                                  <GetTVShowsRestHandler
+                                    client={client}
+                                    collection={collection}
+                                  />
+                                  <DownloadTVShowRestHandler
+                                    client={client}
+                                    downloadedTVShowsCollection={collection}
+                                  />
+                                  <StreamTVShowEpisodeRestHandler
+                                    client={client}
+                                    downloadedTVShowsCollection={collection}
+                                    activeDevice={state.activeDevices.first()}
+                                  />
+                                  <StreamRandomTVShowEpisodeRestHandler
+                                    client={client}
+                                    downloadedTVShowsCollection={collection}
+                                    activeDevice={state.activeDevices.first()}
+                                  />
+                                </>
+                              )}
+                            </Collection>
+                          </>
+                        )}
+                      </WebTorrentClient>
+                    </>
+                  )}
+                </State>
+                <GetSubtitlesFromOpenSubtitlesRestHandler />
+                <GetSubtitlesFromFileRestHandler />
+                <RemoteSideEffectsContext.Consumer>
+                  {({ emitRemoteData }) => (
+                    <ChromecastSideEffectsContext.Consumer>
+                      {({ showApplication }) => (
+                        <ShowApplicationRestHandler
+                          onShowApplication={() => {
+                            console.log("Changing to chromecast..");
+                            emitRemoteData(ChangeToChromecastCommand.data);
+                            console.log("Showing application...");
+                            showApplication();
+                            console.log("Homey is live.");
+                          }}
+                        />
                       )}
-                    </Collection>
-
-                    <WebTorrentClient>
-                      {({ client }) => (
-                        <>
-                          <GetTorrentsRestHandler client={client} />
-                          <Collection<TVShowEpisode> name="downloadedTvShows">
-                            {({ collection }) => (
-                              <>
-                                <Lifecycle
-                                  onDidMount={() => {
-                                    console.log(
-                                      `Adding existing ${collection
-                                        .size()
-                                        .value()} torrents.`
-                                    );
-                                    const existing = collection.value();
-                                    existing.forEach(downloadedTvShow =>
-                                      addTorrentToClient(
-                                        client,
-                                        downloadedTvShow.magnetLink
-                                      )
-                                    );
-                                  }}
-                                />
-                                <GetTVShowsRestHandler
-                                  client={client}
-                                  collection={collection}
-                                />
-                                <DownloadTVShowRestHandler
-                                  client={client}
-                                  downloadedTVShowsCollection={collection}
-                                />
-                                <StreamTVShowEpisodeRestHandler
-                                  client={client}
-                                  downloadedTVShowsCollection={collection}
-                                  activeDevice={state.activeDevices.first()}
-                                />
-                                <StreamRandomTVShowEpisodeRestHandler
-                                  client={client}
-                                  downloadedTVShowsCollection={collection}
-                                  activeDevice={state.activeDevices.first()}
-                                />
-                              </>
-                            )}
-                          </Collection>
-                        </>
-                      )}
-                    </WebTorrentClient>
-                  </>
-                )}
-              </State>
-              <GetSubtitlesFromOpenSubtitlesRestHandler />
-              <GetSubtitlesFromFileRestHandler />
-              <ChromecastSideEffectsContext.Consumer>
-                {({ showApplication }) => (
-                  <ShowApplicationRestHandler
-                    onShowApplication={() => {
-                      showApplication();
-                    }}
-                  />
-                )}
-              </ChromecastSideEffectsContext.Consumer>
-            </SwaggerServer>
-            <StaticFilesMiddleware path={resolve(__dirname, "../frontend")} />
-          </>
-        </ExpressServer>
-      </Database>
-    </ChromecastSideEffects>
+                    </ChromecastSideEffectsContext.Consumer>
+                  )}
+                </RemoteSideEffectsContext.Consumer>
+              </SwaggerServer>
+              <StaticFilesMiddleware path={resolve(__dirname, "../frontend")} />
+            </>
+          </ExpressServer>
+        </Database>
+      </ChromecastSideEffects>
+    </RemoteSideEffects>
   );
 }
