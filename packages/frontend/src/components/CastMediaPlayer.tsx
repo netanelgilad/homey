@@ -5,6 +5,7 @@ export class CastMediaPlayer extends React.Component<
   {
     onVideoPlaying();
     onVideoStopped();
+    onDisplayMessage(event: {type: "error" | "info", message: string});
   },
   {
     failedLoadingPlayer: boolean;
@@ -13,7 +14,7 @@ export class CastMediaPlayer extends React.Component<
   private ref: React.RefObject<HTMLDivElement>;
 
   constructor(
-    props: Readonly<{ onVideoPlaying(): any; onVideoStopped(): any }>
+    props
   ) {
     super(props);
 
@@ -41,7 +42,7 @@ export class CastMediaPlayer extends React.Component<
   public componentDidMount() {
     this.ref.current!.innerHTML = "<cast-media-player></cast-media-player>";
     try {
-        cast.framework.CastReceiverContext.getInstance().start();
+        const context = cast.framework.CastReceiverContext.getInstance();
         const playerManager = cast.framework.CastReceiverContext.getInstance().getPlayerManager();
         let playing = false;
     
@@ -56,10 +57,15 @@ export class CastMediaPlayer extends React.Component<
               playing = false;
               this.props.onVideoStopped();
             }
-            // Write your own event handling code, for example
-            // using the event.mediaStatus value
           }
         );
+
+        context.addCustomMessageListener("urn:x-cast:com.homey.messages", (customEvent) => {
+          this.props.onDisplayMessage(customEvent.data);
+        });
+        
+        context.start();
+
     }
     catch (err) {
         this.setState({ failedLoadingPlayer : true });

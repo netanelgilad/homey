@@ -14,12 +14,16 @@ import { encode } from "base-64";
 import * as utf8 from "utf8";
 import { Torrent as WebTorrentTorrent } from "webtorrent";
 import { Torrent } from "../webtorrent/Torrent";
-import { PlayVideo } from "../chromecasts/ChromecastSideEffects";
+import {
+  PlayVideo,
+  DisplayMessage
+} from "../chromecasts/ChromecastSideEffects";
 import { StartTorrentStreamServer } from "./StreamingServerSideEffects";
 
 export async function downloadTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
+  displayMessage: DisplayMessage,
   tvShow: string,
   season?: number,
   episode?: number
@@ -38,14 +42,26 @@ export async function downloadTVShowEpisode(
     }`
   );
 
+  const torrent = await ensureTorrentForEpisode(
+    client,
+    downloadedTVShowsCollection,
+    displayMessage,
+    tvShowInfo,
+    foundSeason,
+    foundEpisode
+  );
+
+  if (!torrent) {
+    displayMessage(
+      "error",
+      `No torrent was found for ${
+        tvShowInfo.tvShowName
+      } season ${foundSeason} episode ${foundEpisode}!`
+    );
+  }
+
   return {
-    torrent: await ensureTorrentForEpisode(
-      client,
-      downloadedTVShowsCollection,
-      tvShowInfo,
-      foundSeason,
-      foundEpisode
-    ),
+    torrent,
     foundSeason,
     foundEpisode
   };
@@ -57,6 +73,7 @@ export async function streamTVShowEpisode(
   activeDevice: Device,
   startTorrentStreamServer: StartTorrentStreamServer,
   playVideo: PlayVideo,
+  displayMessage: DisplayMessage,
   tvShow: string,
   season?: number,
   episode?: number
@@ -64,6 +81,7 @@ export async function streamTVShowEpisode(
   const { torrent, foundSeason, foundEpisode } = await downloadTVShowEpisode(
     client,
     downloadedTVShowsCollection,
+    displayMessage,
     tvShow,
     season,
     episode
@@ -112,6 +130,7 @@ export async function streamRandomTVShowEpisode(
   activeDevice: Device,
   startTorrentStreamServer: StartTorrentStreamServer,
   playVideo: PlayVideo,
+  displayMessage: DisplayMessage,
   tvShow: string
 ) {
   const tvShowName = canonizeTVShowName(tvShow);
@@ -124,6 +143,7 @@ export async function streamRandomTVShowEpisode(
     activeDevice,
     startTorrentStreamServer,
     playVideo,
+    displayMessage,
     tvShowName,
     randomEpisode.season,
     randomEpisode.number
@@ -158,6 +178,7 @@ export function addTorrentToClient(client: Instance, magnetLink: string) {
 export async function ensureTorrentForEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
+  displayMessage: DisplayMessage,
   tvShowInfo: TVShowInfo,
   season: number,
   episode: number
@@ -172,6 +193,7 @@ export async function ensureTorrentForEpisode(
 
   if (!downloadedTvShowEpisode) {
     const magnetLink = await getMagnetLinkFromPiratebay(
+      displayMessage,
       canonizeTVShowName(tvShowInfo.tvShowName),
       season,
       episode
@@ -201,7 +223,12 @@ export async function ensureTorrentForEpisode(
   return client.get(downloadedTvShowEpisode.magnetLink) as WebTorrentTorrent;
 }
 
-async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
+async function getMagnetLinkFromPiratebay(
+  displayMessage: DisplayMessage,
+  tvShow,
+  season,
+  episode
+) {
   const pirateBayQuery = `${tvShow} s${pad(season)}e${pad(episode)}`;
   console.log("getting torrent from thepiratebay for query", pirateBayQuery);
   const results = await search(pirateBayQuery);
@@ -213,6 +240,10 @@ async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
   }
 
   const bestTorrent = results[0];
+  displayMessage(
+    "info",
+    `Found best torrent ${bestTorrent.name} with ${bestTorrent.seeders} seeders`
+  );
   console.log(
     "found best torrent",
     bestTorrent.name,

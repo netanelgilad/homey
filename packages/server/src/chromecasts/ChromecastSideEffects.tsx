@@ -1,7 +1,11 @@
 import * as React from "react";
 import { State, Lifecycle } from "@react-atoms/core";
 import { ChromecastAddress } from "./ChromecastAddress";
-import { Client, DefaultMediaReceiver } from "castv2-client";
+import {
+  Client,
+  DefaultMediaReceiver,
+  RequestResponseController
+} from "castv2-client";
 import * as mime from "mime";
 
 export type PlayVideo = (
@@ -10,13 +14,36 @@ export type PlayVideo = (
   subtitlesLink: string
 ) => void;
 
+export type DisplayMessage = (
+  type: "error" | "info" | "warning",
+  message: string
+) => void;
+
 export const ChromecastSideEffectsContext = React.createContext<{
   showApplication();
   playVideo: PlayVideo;
+  displayMessage: DisplayMessage;
 }>(undefined);
 
 export class HomeyCastApp extends DefaultMediaReceiver {
-  static APP_ID = "7D2728B5";
+  static APP_ID = "ECC0F01A";
+  homeyMessages: RequestResponseController;
+
+  constructor(client, session) {
+    super(client, session);
+
+    this.homeyMessages = this.createController(
+      RequestResponseController,
+      "urn:x-cast:com.homey.messages"
+    );
+  }
+
+  sendMessage(data: { type: string }) {
+    console.log("Sending message of type ", data.type);
+    this.homeyMessages.request(data, () => {
+      console.log("Message recieved.");
+    });
+  }
 }
 
 export function ChromecastSideEffects(props: {
@@ -93,6 +120,13 @@ export function ChromecastSideEffects(props: {
                     console.log("Video loaded.");
                   }
                 );
+              },
+              async displayMessage(type, message) {
+                const player = await startApplication(state.client);
+                player.sendMessage({
+                  type,
+                  message
+                });
               }
             }}
           >

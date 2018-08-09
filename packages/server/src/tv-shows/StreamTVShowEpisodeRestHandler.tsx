@@ -18,16 +18,18 @@ export function StreamTVShowEpisodeRestHandler(props: {
     <StreamingServerSideEffectsContext.Consumer>
       {({ startTorrentStreamServer }) => (
         <ChromecastSideEffectsContext.Consumer>
-          {({ playVideo }) => (
+          {({ playVideo, showApplication, displayMessage }) => (
             <RestActionHandler
               restAction={streamTVShowEpisodeRestAction}
               handler={({ tvShow, season, episode }) => {
+                showApplication();
                 streamTVShowEpisode(
                   props.client,
                   props.downloadedTVShowsCollection,
                   props.activeDevice,
                   startTorrentStreamServer,
                   playVideo,
+                  displayMessage,
                   tvShow,
                   season,
                   episode

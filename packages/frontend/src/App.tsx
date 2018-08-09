@@ -1,9 +1,14 @@
 import * as React from "react";
 import Layout from "antd/lib/layout";
+import message from "antd/lib/message";
 import "./App.css";
 import { TvShowsList } from "./components/TvShowsList";
 import { CastMediaPlayer } from "./components/CastMediaPlayer";
 import { State } from "@react-atoms/core";
+
+message.config({
+  top: 50
+});
 
 class App extends React.Component {
   public render() {
@@ -33,6 +38,9 @@ class App extends React.Component {
                 <CastMediaPlayer 
                   onVideoPlaying={() => setState({isPlaying: true})}
                   onVideoStopped={() => setState({isPlaying: false})}
+                  onDisplayMessage={({ type, message: text }) => {
+                    message[type](text);
+                  }}
                 />
               </div>
             )}
