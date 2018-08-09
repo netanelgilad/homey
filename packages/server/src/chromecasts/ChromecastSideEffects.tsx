@@ -62,18 +62,8 @@ export function ChromecastSideEffects(props: {
             {({ address }) =>
               address && (
                 <Lifecycle
-                  onDidMount={() => {
-                    const client = new Client();
-                    client.connect(
-                      address,
-                      () => {
-                        setState({ client });
-                      }
-                    );
-                    client.on("error", function(err) {
-                      console.log("Error: %s", err.message);
-                      client.close();
-                    });
+                  onDidMount={async () => {
+                    getConnectedClient(address, client => setState({ client }));
                   }}
                 />
               )
@@ -174,4 +164,20 @@ function toSubtitles(url, i) {
     language: "en-US",
     subtype: "SUBTITLES"
   };
+}
+
+async function getConnectedClient(
+  address: string,
+  onClientConnected: (client: Client) => void
+) {
+  const client = new Client();
+  client.connect(
+    address,
+    () => onClientConnected(client)
+  );
+  client.on("error", err => {
+    console.log("Error: %s", err.message);
+    client.close();
+    getConnectedClient(address, onClientConnected);
+  });
 }
