@@ -15,7 +15,7 @@ export type TVShowInfo = {
 export async function getTVShowInfo(tvShow): Promise<TVShowInfo> {
   console.log("Getting tv show info from TV Maze for tv show", tvShow);
   const showInfo = await safeGet(
-    `http://api.tvmaze.com/singlesearch/shows?q=${tvShow}&embed[]=episodes&embed=previousepisode`
+    `http://api.tvmaze.com/singlesearch/shows?q=${tvShow}&embed[]=episodes&embed[]=previousepisode`
   );
   return {
     tvShowName: showInfo.name,
