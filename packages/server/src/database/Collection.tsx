@@ -12,7 +12,7 @@ export function Collection<T>(props: {
   return (
     <DatabaseContext.Consumer>
       {({ db }) => (
-        <Lifecycle onDidMount={() => db.defaults({ [props.name]: [] }).write()}>
+        <Lifecycle onW={() => db.defaults({ [props.name]: [] }).write()}>
           {props.children({
             collection: db.get(props.name) as LoDashExplicitSyncWrapper<
               Array<T>

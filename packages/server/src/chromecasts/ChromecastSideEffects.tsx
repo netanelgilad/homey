@@ -62,6 +62,12 @@ export function ChromecastSideEffects(props: {
                 }
               },
               async playVideo(title, videoLink, subtitlesLink) {
+                if (!state.client) {
+                  console.log(
+                    "Chromecast not connected yet. Can't play video..."
+                  );
+                  return;
+                }
                 const player = await startApplication(state.client);
                 const media = {
                   contentId: videoLink,
@@ -100,6 +106,7 @@ export function ChromecastSideEffects(props: {
 
 export function startApplication(client) {
   return new Promise<any>((resolve, reject) => {
+    console.log("Getting session on chromecast...");
     client.getSessions(function(err, sess) {
       if (err) {
         console.log("An error occured trying to get sessions", err);

@@ -115,7 +115,7 @@ export function TvShowsList() {
                   avatar={
                     <img
                       height={100}
-                      src="http://static.tvmaze.com/uploads/images/medium_portrait/1/3603.jpg"
+                      src={tvShowEpisodeInfo.episode.coverImageUrl}
                     />
                   }
                   title={tvShowEpisodeInfo.episode.tvShowName}

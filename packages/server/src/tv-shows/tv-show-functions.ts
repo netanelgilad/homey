@@ -1,8 +1,5 @@
 import { canonizeTVShowName, TVShowEpisode } from "./TVShow";
-import {
-  getLastEpisodeOfTVShow,
-  getTVShowEpisodes
-} from "./getLastEpisodeOfTVShow";
+import { getTVShowInfo, TVShowInfo } from "./getLastEpisodeOfTVShow";
 import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { join, basename, extname } from "path";
@@ -29,21 +26,23 @@ export async function downloadTVShowEpisode(
 ) {
   const tvShowName = canonizeTVShowName(tvShow);
 
-  const { season: foundSeason, episode: foundEpisode } = await getTVShowData(
-    tvShowName,
-    season,
-    episode
-  );
+  const {
+    tvShowInfo,
+    season: foundSeason,
+    episode: foundEpisode
+  } = await getTVShowData(tvShowName, season, episode);
 
   console.log(
-    `Download episode ${foundEpisode} season ${foundSeason} of ${tvShowName}`
+    `Download episode ${foundEpisode} season ${foundSeason} of ${
+      tvShowInfo.tvShowName
+    }`
   );
 
   return {
     torrent: await ensureTorrentForEpisode(
       client,
       downloadedTVShowsCollection,
-      tvShowName,
+      tvShowInfo,
       foundSeason,
       foundEpisode
     ),
@@ -69,6 +68,10 @@ export async function streamTVShowEpisode(
     season,
     episode
   );
+  if (!torrent) {
+    console.log("No torrent was added. Can't stream!");
+    return;
+  }
 
   const serverPort = await startTorrentStreamServer(torrent);
 
@@ -112,8 +115,8 @@ export async function streamRandomTVShowEpisode(
   tvShow: string
 ) {
   const tvShowName = canonizeTVShowName(tvShow);
-  const tVShowEpisodes = await getTVShowEpisodes(tvShowName);
-  const randomEpisode = sample(tVShowEpisodes);
+  const tvShowInfo = await getTVShowInfo(tvShowName);
+  const randomEpisode = sample(tvShowInfo.episodes);
 
   await streamTVShowEpisode(
     client,
@@ -132,16 +135,17 @@ export async function getTVShowData(
   season: number,
   episode?: number
 ) {
+  const tvShowInfo = await getTVShowInfo(tvShow);
+
   if (!episode) {
-    const lastEpisodeInfo = await getLastEpisodeOfTVShow(tvShow);
-    season = lastEpisodeInfo.season;
-    episode = lastEpisodeInfo.episode;
+    season = tvShowInfo.previousEpisode.season;
+    episode = tvShowInfo.previousEpisode.number;
   } else if (episode >= 100) {
     season = Math.floor(episode / 100);
     episode = episode % 100;
   }
 
-  return { season, episode };
+  return { tvShowInfo, season, episode };
 }
 
 export function addTorrentToClient(client: Instance, magnetLink: string) {
@@ -154,13 +158,13 @@ export function addTorrentToClient(client: Instance, magnetLink: string) {
 export async function ensureTorrentForEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
-  tvShow: string,
+  tvShowInfo: TVShowInfo,
   season: number,
   episode: number
 ) {
   let downloadedTvShowEpisode = downloadedTVShowsCollection
     .find({
-      tvShowName: tvShow,
+      tvShowName: tvShowInfo.tvShowName,
       season,
       episode
     })
@@ -168,7 +172,7 @@ export async function ensureTorrentForEpisode(
 
   if (!downloadedTvShowEpisode) {
     const magnetLink = await getMagnetLinkFromPiratebay(
-      tvShow,
+      canonizeTVShowName(tvShowInfo.tvShowName),
       season,
       episode
     );
@@ -182,9 +186,10 @@ export async function ensureTorrentForEpisode(
     console.log(`Torrent added.`);
 
     downloadedTvShowEpisode = {
-      tvShowName: tvShow,
+      tvShowName: tvShowInfo.tvShowName,
       season,
       episode,
+      coverImageUrl: tvShowInfo.coverImageUrl,
       magnetLink
     };
 
