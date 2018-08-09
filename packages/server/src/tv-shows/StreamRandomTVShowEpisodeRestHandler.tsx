@@ -7,6 +7,7 @@ import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
 import { Device } from "../devices/Device";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
+import { StreamingServerSideEffectsContext } from "./StreamingServerSideEffects";
 
 export function StreamRandomTVShowEpisodeRestHandler(props: {
   client: Instance;
@@ -14,21 +15,26 @@ export function StreamRandomTVShowEpisodeRestHandler(props: {
   activeDevice: Device;
 }) {
   return (
-    <ChromecastSideEffectsContext.Consumer>
-      {({ playVideo }) => (
-        <RestActionHandler
-          restAction={streamRandomTVShowEpisodeRestAction}
-          handler={({ tvShow }) => {
-            streamRandomTVShowEpisode(
-              props.client,
-              props.downloadedTVShowsCollection,
-              props.activeDevice,
-              playVideo,
-              tvShow
-            );
-          }}
-        />
+    <StreamingServerSideEffectsContext.Consumer>
+      {({ startTorrentStreamServer }) => (
+        <ChromecastSideEffectsContext.Consumer>
+          {({ playVideo }) => (
+            <RestActionHandler
+              restAction={streamRandomTVShowEpisodeRestAction}
+              handler={({ tvShow }) => {
+                streamRandomTVShowEpisode(
+                  props.client,
+                  props.downloadedTVShowsCollection,
+                  props.activeDevice,
+                  startTorrentStreamServer,
+                  playVideo,
+                  tvShow
+                );
+              }}
+            />
+          )}
+        </ChromecastSideEffectsContext.Consumer>
       )}
-    </ChromecastSideEffectsContext.Consumer>
+    </StreamingServerSideEffectsContext.Consumer>
   );
 }

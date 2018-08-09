@@ -8,7 +8,6 @@ import { LowCollection } from "../database/Collection";
 import { join, basename, extname } from "path";
 import { search } from "thepiratebay";
 import { pad } from "../utils";
-import { AddressInfo } from "net";
 import * as networkAddress from "network-address";
 import { Device } from "../devices/Device";
 import { emitCommand } from "../devices/runCommand";
@@ -19,6 +18,7 @@ import * as utf8 from "utf8";
 import { Torrent as WebTorrentTorrent } from "webtorrent";
 import { Torrent } from "../webtorrent/Torrent";
 import { PlayVideo } from "../chromecasts/ChromecastSideEffects";
+import { StartTorrentStreamServer } from "./StreamingServerSideEffects";
 
 export async function downloadTVShowEpisode(
   client: Instance,
@@ -56,6 +56,7 @@ export async function streamTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   activeDevice: Device,
+  startTorrentStreamServer: StartTorrentStreamServer,
   playVideo: PlayVideo,
   tvShow: string,
   season?: number,
@@ -69,7 +70,7 @@ export async function streamTVShowEpisode(
     episode
   );
 
-  const serverPort = await createStreamingServer(torrent);
+  const serverPort = await startTorrentStreamServer(torrent);
 
   console.log("server and torrent are ready, streaming to chromecast...");
 
@@ -106,6 +107,7 @@ export async function streamRandomTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   activeDevice: Device,
+  startTorrentStreamServer: StartTorrentStreamServer,
   playVideo: PlayVideo,
   tvShow: string
 ) {
@@ -117,6 +119,7 @@ export async function streamRandomTVShowEpisode(
     client,
     downloadedTVShowsCollection,
     activeDevice,
+    startTorrentStreamServer,
     playVideo,
     tvShowName,
     randomEpisode.season,
@@ -213,48 +216,6 @@ async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
     "seeders"
   );
   return bestTorrent.magnetLink;
-}
-
-export async function createStreamingServer(torrent: WebTorrentTorrent) {
-  await waitForInfoHash(torrent);
-
-  console.log("Got torrent infoHas, creating server...");
-
-  const serverPort = await createTorrentServer(torrent);
-
-  await waitForTorrentReady(torrent);
-
-  return serverPort;
-}
-
-export async function waitForInfoHash(torrent: WebTorrentTorrent) {
-  return new Promise(resolve => {
-    if (torrent.infoHash) resolve();
-    else torrent.on("infoHash", resolve);
-  });
-}
-
-export async function waitForTorrentReady(torrent: WebTorrentTorrent) {
-  return new Promise(resolve => {
-    if (torrent.ready) resolve();
-    else torrent.once("ready", resolve);
-  });
-}
-
-export async function createTorrentServer(
-  torrent: WebTorrentTorrent
-): Promise<number> {
-  return new Promise<number>(resolve => {
-    const server = torrent.createServer();
-    server.on("error", err => {
-      console.log(err);
-    });
-
-    server.listen(0, () => {
-      console.log("server started on ", server.address());
-      resolve((server.address() as AddressInfo).port);
-    });
-  });
 }
 
 export async function waitForTorrentBytes(
