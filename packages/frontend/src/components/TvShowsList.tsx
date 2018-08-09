@@ -22,12 +22,12 @@ const IconText = ({ type, text }) => (
 );
 
 export function Speed(props: { speed: number }) {
-  let speed = props.speed + "B/s";
+  let speed = props.speed.toFixed(2) + "B/s";
 
   if (props.speed > MegaByte * 1.1) {
-    speed = props.speed / MegaByte + "MB/s";
+    speed = (props.speed / MegaByte).toFixed(2) + "MB/s";
   } else if (props.speed > KiloByte * 1.1) {
-    speed = props.speed / KiloByte + "KB/s";
+    speed = (props.speed / KiloByte).toFixed(2) + "KB/s";
   }
 
   return <span>{speed}</span>;
@@ -126,50 +126,24 @@ export function TvShowsList() {
                         {tvShowEpisodeInfo.episode.episode}
                       </div>
                       <div>
-                        {tvShowEpisodeInfo.torrentInfo.progress > 0.1 ? (
-                          <Tag color="green">Ready to stream</Tag>
-                        ) : (
-                          <Tag color="orange">Waiting...</Tag>
-                        )}
-                        {tvShowEpisodeInfo.torrentInfo.progress === 1 ? (
-                          <Tag color="green">Download Complete</Tag>
-                        ) : (
-                          <Tag color="orange">Downloading...</Tag>
-                        )}
+                        <div>
+                          {tvShowEpisodeInfo.torrentInfo.progress > 0.1 ? (
+                            <Tag color="green">Ready to stream</Tag>
+                          ) : (
+                            <Tag color="orange">Waiting...</Tag>
+                          )}
+                        </div>
+                        <div>
+                          {tvShowEpisodeInfo.torrentInfo.progress === 1 ? (
+                            <Tag color="green">Download Complete</Tag>
+                          ) : (
+                            <Tag color="orange">Downloading...</Tag>
+                          )}
+                        </div>
                       </div>
                     </div>
                   }
                 />
-                {/* {tvShowEpisodeInfo.torrentInfo.progress < 1 && (
-                  <>
-                    <h5>Download Info</h5>
-                    <Row>
-                      <Col>
-                        <Progress
-                          showInfo={false}
-                          status="active"
-                          percent={tvShowEpisodeInfo.torrentInfo.progress * 100}
-                        />
-                      </Col>
-                    </Row>
-                    <Row>
-                      Download Speed:{" "}
-                      <Speed
-                        speed={tvShowEpisodeInfo.torrentInfo.downloadSpeed}
-                      />
-                    </Row>
-                    <Row>
-                      Time Remaining:{" "}
-                      <Time
-                        time={tvShowEpisodeInfo.torrentInfo.timeRemaining}
-                      />
-                    </Row>
-                    <Row>
-                      Peers:{" "}
-                      {tvShowEpisodeInfo.torrentInfo.peers}
-                    </Row>
-                  </>
-                )} */}
               </List.Item>
             )}
           />
