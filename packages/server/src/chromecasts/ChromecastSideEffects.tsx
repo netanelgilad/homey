@@ -175,6 +175,9 @@ async function getConnectedClient(
     address,
     () => onClientConnected(client)
   );
+  client.on("status", status => {
+    console.log("client status", status);
+  });
   client.on("error", err => {
     console.log("Error: %s", err.message);
     client.close();
