@@ -1,6 +1,6 @@
 import * as React from "react";
 import { Resource, Renderable } from "@react-atoms/core";
-import { createBrowser, tcp } from "mdns";
+import { createBrowser, tcp, rst } from "mdns";
 
 export function ChromecastAddress(props: {
   name: string;
@@ -10,7 +10,14 @@ export function ChromecastAddress(props: {
     <Resource
       createResource={() => {
         return new Promise<string>(resolve => {
-          const browser = createBrowser(tcp("googlecast"));
+          const sequence = [
+            rst.DNSServiceResolve(),
+            rst.getaddrinfo({ families: [4] })
+          ];
+
+          const browser = createBrowser(tcp("googlecast"), {
+            resolverSequence: sequence
+          });
 
           browser.on("serviceUp", service => {
             if (service.txtRecord.fn === props.name) {

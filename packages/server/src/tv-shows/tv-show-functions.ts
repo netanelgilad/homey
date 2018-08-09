@@ -142,7 +142,6 @@ export async function getTVShowData(
 }
 
 export function addTorrentToClient(client: Instance, magnetLink: string) {
-  console.log(process.cwd());
   client.add(magnetLink, {
     path: join(process.cwd(), "./torrents"),
     announce: ["udp://public.popcorn-tracker.org:6969/announce"]
