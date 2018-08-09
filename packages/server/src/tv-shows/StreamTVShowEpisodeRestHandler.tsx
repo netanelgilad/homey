@@ -6,28 +6,31 @@ import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
 import { Device } from "../devices/Device";
-import { Chromecast } from "../chromecasts/Chromecast";
+import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 
 export function StreamTVShowEpisodeRestHandler(props: {
   client: Instance;
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>;
   activeDevice: Device;
-  activeChromecast: Chromecast;
 }) {
   return (
-    <RestActionHandler
-      restAction={streamTVShowEpisodeRestAction}
-      handler={({ tvShow, season, episode }) => {
-        streamTVShowEpisode(
-          props.client,
-          props.downloadedTVShowsCollection,
-          props.activeDevice,
-          props.activeChromecast,
-          tvShow,
-          season,
-          episode
-        );
-      }}
-    />
+    <ChromecastSideEffectsContext.Consumer>
+      {({ playVideo }) => (
+        <RestActionHandler
+          restAction={streamTVShowEpisodeRestAction}
+          handler={({ tvShow, season, episode }) => {
+            streamTVShowEpisode(
+              props.client,
+              props.downloadedTVShowsCollection,
+              props.activeDevice,
+              playVideo,
+              tvShow,
+              season,
+              episode
+            );
+          }}
+        />
+      )}
+    </ChromecastSideEffectsContext.Consumer>
   );
 }

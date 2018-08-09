@@ -1,20 +1,45 @@
-import * as React from 'react';
-import './App.css';
-
-import logo from './logo.svg';
+import * as React from "react";
+import Layout from "antd/lib/layout";
+import "./App.css";
+import { TvShowsList } from "./components/TvShowsList";
+import { CastMediaPlayer } from "./components/CastMediaPlayer";
+import { State } from "@react-atoms/core";
 
 class App extends React.Component {
   public render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          To get started, edit <code>src/App.tsx</code> and save to reload.
-        </p>
-      </div>
+      <Layout style={{ height: "100%", padding: "50px" }}>
+        <Layout.Sider width={600} theme="light">
+          <TvShowsList />
+        </Layout.Sider>
+        <Layout.Content>
+          <State
+            initialState={{
+              isPlaying: false
+            }}
+          >
+            {({state, setState}) => (
+              <div
+                style={state.isPlaying ? {
+                  position: "fixed",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%"
+                } : {
+                  height: "100%"
+                }}
+              >
+                <CastMediaPlayer 
+                  onVideoPlaying={() => setState({isPlaying: true})}
+                  onVideoStopped={() => setState({isPlaying: false})}
+                />
+              </div>
+            )}
+          </State>
+          
+        </Layout.Content>
+      </Layout>
     );
   }
 }

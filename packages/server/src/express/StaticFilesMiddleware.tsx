@@ -4,7 +4,7 @@ import { Lifecycle } from "@react-atoms/core";
 import { static as staticMiddleware } from "express";
 
 export function StaticFilesMiddleware(props: {
-  prefix?: string;
+  prefix?: string | RegExp | Array<string | RegExp>;
   path: string;
 }) {
   return (
@@ -12,11 +12,14 @@ export function StaticFilesMiddleware(props: {
       {({ app }) => (
         <Lifecycle
           onDidMount={() => {
-            if (props.prefix) {
-              app.use(props.prefix, staticMiddleware(props.path));
-            } else {
-              app.use(staticMiddleware(props.path));
-            }
+            // ugly hack because of swagger
+            setTimeout(() => {
+              if (props.prefix) {
+                app.use(props.prefix, staticMiddleware(props.path));
+              } else {
+                app.use(staticMiddleware(props.path));
+              }
+            }, 3000);
           }}
         />
       )}

@@ -2,10 +2,12 @@ import * as React from "react";
 import { State, Lifecycle } from "@react-atoms/core";
 import * as express from "express";
 import { ReactNode } from "react";
-import { createServer } from 'http';
+import { createServer } from "http";
 import * as cors from "cors";
 
-export const ExpressServerContext = React.createContext(undefined);
+export const ExpressServerContext = React.createContext<{
+  app: express.Express;
+}>(undefined);
 
 export function ExpressServer(props: { port: number; children: ReactNode }) {
   return (
@@ -21,7 +23,7 @@ export function ExpressServer(props: { port: number; children: ReactNode }) {
             createServer(state.app).listen(props.port);
           }}
         >
-          <ExpressServerContext.Provider value={{ app: state.app}}>
+          <ExpressServerContext.Provider value={{ app: state.app }}>
             {props.children}
           </ExpressServerContext.Provider>
         </Lifecycle>

@@ -3,7 +3,7 @@ import {
   getLastEpisodeOfTVShow,
   getTVShowEpisodes
 } from "./getLastEpisodeOfTVShow";
-import { Instance, Torrent } from "webtorrent";
+import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { join, basename, extname } from "path";
 import { search } from "thepiratebay";
@@ -16,7 +16,9 @@ import { ChangeToChromecastCommand } from "../devices/AllDeviceCommands";
 import { find, endsWith, includes, sample, replace } from "lodash";
 import { encode } from "base-64";
 import * as utf8 from "utf8";
-import { Chromecast } from "../chromecasts/Chromecast";
+import { Torrent as WebTorrentTorrent } from "webtorrent";
+import { Torrent } from "../webtorrent/Torrent";
+import { PlayVideo } from "../chromecasts/ChromecastSideEffects";
 
 export async function downloadTVShowEpisode(
   client: Instance,
@@ -54,7 +56,7 @@ export async function streamTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   activeDevice: Device,
-  activeChromecast: Chromecast,
+  playVideo: PlayVideo,
   tvShow: string,
   season?: number,
   episode?: number
@@ -97,18 +99,14 @@ export async function streamTVShowEpisode(
     torrent.files[largestFileIndex].path
   );
 
-  activeChromecast.play(href, {
-    title: "Homey - " + torrent.files[largestFileIndex].name,
-    subtitles: [subtitlesLink],
-    autoSubtitles: true
-  });
+  playVideo(torrent.files[largestFileIndex].name, href, subtitlesLink);
 }
 
 export async function streamRandomTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   activeDevice: Device,
-  activeChromecast: Chromecast,
+  playVideo: PlayVideo,
   tvShow: string
 ) {
   const tvShowName = canonizeTVShowName(tvShow);
@@ -119,7 +117,7 @@ export async function streamRandomTVShowEpisode(
     client,
     downloadedTVShowsCollection,
     activeDevice,
-    activeChromecast,
+    playVideo,
     tvShowName,
     randomEpisode.season,
     randomEpisode.number
@@ -141,6 +139,14 @@ export async function getTVShowData(
   }
 
   return { season, episode };
+}
+
+export function addTorrentToClient(client: Instance, magnetLink: string) {
+  console.log(process.cwd());
+  client.add(magnetLink, {
+    path: join(process.cwd(), "./torrents"),
+    announce: ["udp://public.popcorn-tracker.org:6969/announce"]
+  });
 }
 
 export async function ensureTorrentForEpisode(
@@ -169,10 +175,7 @@ export async function ensureTorrentForEpisode(
       return;
     }
 
-    client.add(magnetLink, {
-      path: join(process.cwd(), "./torrents"),
-      announce: ["udp://public.popcorn-tracker.org:6969/announce"]
-    });
+    addTorrentToClient(client, magnetLink);
 
     console.log(`Torrent added.`);
 
@@ -188,7 +191,7 @@ export async function ensureTorrentForEpisode(
     console.log("Torrent already added");
   }
 
-  return client.get(downloadedTvShowEpisode.magnetLink) as Torrent;
+  return client.get(downloadedTvShowEpisode.magnetLink) as WebTorrentTorrent;
 }
 
 async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
@@ -213,7 +216,7 @@ async function getMagnetLinkFromPiratebay(tvShow, season, episode) {
   return bestTorrent.magnetLink;
 }
 
-export async function createStreamingServer(torrent: Torrent) {
+export async function createStreamingServer(torrent: WebTorrentTorrent) {
   await waitForInfoHash(torrent);
 
   console.log("Got torrent infoHas, creating server...");
@@ -225,21 +228,23 @@ export async function createStreamingServer(torrent: Torrent) {
   return serverPort;
 }
 
-export async function waitForInfoHash(torrent: Torrent) {
+export async function waitForInfoHash(torrent: WebTorrentTorrent) {
   return new Promise(resolve => {
     if (torrent.infoHash) resolve();
     else torrent.on("infoHash", resolve);
   });
 }
 
-export async function waitForTorrentReady(torrent: Torrent) {
+export async function waitForTorrentReady(torrent: WebTorrentTorrent) {
   return new Promise(resolve => {
     if (torrent.ready) resolve();
     else torrent.once("ready", resolve);
   });
 }
 
-export async function createTorrentServer(torrent: Torrent): Promise<number> {
+export async function createTorrentServer(
+  torrent: WebTorrentTorrent
+): Promise<number> {
   return new Promise<number>(resolve => {
     const server = torrent.createServer();
     server.on("error", err => {
@@ -254,7 +259,7 @@ export async function createTorrentServer(torrent: Torrent): Promise<number> {
 }
 
 export async function waitForTorrentBytes(
-  torrent: Torrent,
+  torrent: WebTorrentTorrent,
   fileIndex: number,
   start: number,
   end: number
@@ -272,7 +277,7 @@ export async function waitForTorrentBytes(
 }
 
 export async function getSubtitlesLink(
-  torrent: Torrent,
+  torrent: WebTorrentTorrent,
   season: number,
   episode: number,
   filePath: string
@@ -321,4 +326,14 @@ export async function getSubtitlesLink(
       )}`
     );
   }
+}
+
+export function originalTorrentToTorrent(torrent: WebTorrentTorrent): Torrent {
+  return {
+    name: torrent.name,
+    progress: torrent.progress,
+    downloadSpeed: torrent.downloadSpeed,
+    peers: torrent.numPeers,
+    timeRemaining: torrent.timeRemaining
+  };
 }

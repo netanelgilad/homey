@@ -2,16 +2,13 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
-  "workspaces": {
-    "nohoist": [
-      "@types/react",
-      "@types/react-dom"
-    ]
-  },
   "dependencies": {
+    "@react-atoms/core": "^0.0.13",
     "antd": "^3.8.0",
+    "axios": "^0.18.0",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
+    "react-full-screen": "^0.2.2",
     "react-scripts-ts": "2.17.0"
   },
   "scripts": {
@@ -20,11 +17,12 @@
     "test": "react-scripts-ts test --env=jsdom",
     "eject": "react-scripts-ts eject"
   },
+  "proxy": "http://localhost:35601",
   "devDependencies": {
     "@types/jest": "^23.3.1",
     "@types/node": "^10.5.6",
     "@types/react": "^16.4.7",
     "@types/react-dom": "^16.0.6",
-    "typescript": "^3.0.1"
+    "typescript": "^2.9.2"
   }
 }

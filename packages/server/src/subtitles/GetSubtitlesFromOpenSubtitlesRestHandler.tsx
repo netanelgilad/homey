@@ -9,7 +9,7 @@ import { find } from "lodash";
 import { get } from "http";
 import * as gunzip from "gunzip-maybe";
 import * as srt2vtt from "srt-to-vtt";
-import { Readable } from 'stream';
+import { Readable } from "stream";
 
 export function GetSubtitlesFromOpenSubtitlesRestHandler() {
   return (
@@ -25,9 +25,9 @@ export function GetSubtitlesFromOpenSubtitlesRestHandler() {
           "eng",
           join(process.cwd(), "torrents/" + filePath)
         );
-        console.log("got results from opensubtitles");
 
         if (results.length > 0) {
+          console.log(`got ${results.length} results from opensubtitles`);
           const subtitle: any = find(results, {
             SeriesSeason: season,
             SeriesEpisode: episode

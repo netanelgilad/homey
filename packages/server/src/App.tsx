@@ -3,8 +3,8 @@ import * as React from "react";
 import { SwaggerServer } from "./swagger/SwaggerServer";
 import { RestActionHandler } from "./rest-actions/RestActionHandler";
 import { getDevicesRestAction } from "./devices/getDevicesRestAction";
-import { State } from "@react-atoms/core";
-import { Set, Map } from "immutable";
+import { State, Lifecycle } from "@react-atoms/core";
+import { Set } from "immutable";
 import { Device } from "./devices/Device";
 import { Database } from "./database/Database";
 import { Collection } from "./database/Collection";
@@ -12,19 +12,25 @@ import { EmitCommandRestHandler } from "./devices/EmitCommandRestHandler";
 import { DownloadTVShowRestHandler } from "./tv-shows/DownloadTVShowRestHandler";
 import { WebTorrentClient } from "./webtorrent/WebTorrentClient";
 import { TVShowEpisode } from "./tv-shows/TVShow";
-import { ChromecastsMonitor } from "./chromecasts/ChromecastsMonitor";
-import { Chromecast } from "./chromecasts/Chromecast";
 import { GetSubtitlesFromOpenSubtitlesRestHandler } from "./subtitles/GetSubtitlesFromOpenSubtitlesRestHandler";
 import { GetSubtitlesFromFileRestHandler } from "./subtitles/GetSubtitlesFromFileRestHandler";
 import { StreamTVShowEpisodeRestHandler } from "./tv-shows/StreamTVShowEpisodeRestHandler";
 import { StreamRandomTVShowEpisodeRestHandler } from "./tv-shows/StreamRandomTVShowEpisodeRestHandler";
 import { ExpressServer } from "./express/ExpressServer";
 import { StaticFilesMiddleware } from "./express/StaticFilesMiddleware";
-import { resolve } from 'path';
+import { resolve } from "path";
+import { GetTorrentsRestHandler } from "./webtorrent/GetTorrentsRestHandler";
+import { addTorrentToClient } from "./tv-shows/tv-show-functions";
+import { GetTVShowsRestHandler } from "./tv-shows/GetTVShowsRestHandler";
+import { ShowApplicationRestHandler } from "./chromecasts/ShowApplicationRestHandler";
+import {
+  ChromecastSideEffects,
+  ChromecastSideEffectsContext
+} from "./chromecasts/ChromecastSideEffects";
 
 export function App() {
   return (
-    <>
+    <ChromecastSideEffects name="Living Room TV">
       <Database filePath="homey.json">
         <ExpressServer port={35601}>
           <>
@@ -48,7 +54,7 @@ export function App() {
                                 console.log(
                                   `Detected a new broadlink device with ip ${
                                     device.host.address
-                                  }. Writing...`
+                                  }. Writing... `
                                 );
                                 collection.push(device).write();
                               } else {
@@ -67,9 +73,7 @@ export function App() {
                           />
                           <RestActionHandler
                             restAction={getDevicesRestAction}
-                            handler={async () => {
-                              return collection.value();
-                            }}
+                            handler={async () => collection.value()}
                           />
                           <EmitCommandRestHandler
                             activeDevice={state.activeDevices.first()}
@@ -78,71 +82,72 @@ export function App() {
                       )}
                     </Collection>
 
-                    <State
-                      initialState={{
-                        activeChromecasts: Map<string, Chromecast>()
-                      }}
-                    >
-                      {({ state: chromecastsState, setState }) => (
+                    <WebTorrentClient>
+                      {({ client }) => (
                         <>
-                          <ChromecastsMonitor
-                            onNewChromecastDiscovered={chromecast => {
-                              console.log(
-                                `Chromecast ${chromecast.name} is active.`
-                              );
-                              setState(state => ({
-                                activeChromecasts: state.activeChromecasts.set(
-                                  chromecast.name,
-                                  chromecast
-                                )
-                              }));
-                            }}
-                          />
-                          <WebTorrentClient>
-                            {({ client }) => (
-                              <Collection<
-                                TVShowEpisode
-                              > name="downloadedTvShows">
-                                {({ collection }) => (
-                                  <>
-                                    <DownloadTVShowRestHandler
-                                      client={client}
-                                      downloadedTVShowsCollection={collection}
-                                    />
-                                    <StreamTVShowEpisodeRestHandler
-                                      client={client}
-                                      downloadedTVShowsCollection={collection}
-                                      activeDevice={state.activeDevices.first()}
-                                      activeChromecast={chromecastsState.activeChromecasts.get(
-                                        "Netanels Macbook Pro"
-                                      )}
-                                    />
-                                    <StreamRandomTVShowEpisodeRestHandler
-                                      client={client}
-                                      downloadedTVShowsCollection={collection}
-                                      activeDevice={state.activeDevices.first()}
-                                      activeChromecast={chromecastsState.activeChromecasts.get(
-                                        "Netanels Macbook Pro"
-                                      )}
-                                    />
-                                  </>
-                                )}
-                              </Collection>
+                          <GetTorrentsRestHandler client={client} />
+                          <Collection<TVShowEpisode> name="downloadedTvShows">
+                            {({ collection }) => (
+                              <>
+                                <Lifecycle
+                                  onDidMount={() => {
+                                    console.log(
+                                      `Adding existing ${collection
+                                        .size()
+                                        .value()} torrents.`
+                                    );
+                                    const existing = collection.value();
+                                    existing.forEach(downloadedTvShow =>
+                                      addTorrentToClient(
+                                        client,
+                                        downloadedTvShow.magnetLink
+                                      )
+                                    );
+                                  }}
+                                />
+                                <GetTVShowsRestHandler
+                                  client={client}
+                                  collection={collection}
+                                />
+                                <DownloadTVShowRestHandler
+                                  client={client}
+                                  downloadedTVShowsCollection={collection}
+                                />
+                                <StreamTVShowEpisodeRestHandler
+                                  client={client}
+                                  downloadedTVShowsCollection={collection}
+                                  activeDevice={state.activeDevices.first()}
+                                />
+                                <StreamRandomTVShowEpisodeRestHandler
+                                  client={client}
+                                  downloadedTVShowsCollection={collection}
+                                  activeDevice={state.activeDevices.first()}
+                                />
+                              </>
                             )}
-                          </WebTorrentClient>
+                          </Collection>
                         </>
                       )}
-                    </State>
+                    </WebTorrentClient>
                   </>
                 )}
               </State>
               <GetSubtitlesFromOpenSubtitlesRestHandler />
               <GetSubtitlesFromFileRestHandler />
+              <ChromecastSideEffectsContext.Consumer>
+                {({ showApplication }) => (
+                  <ShowApplicationRestHandler
+                    onShowApplication={() => {
+                      showApplication();
+                    }}
+                  />
+                )}
+              </ChromecastSideEffectsContext.Consumer>
             </SwaggerServer>
             <StaticFilesMiddleware path={resolve(__dirname, "../frontend")} />
           </>
         </ExpressServer>
       </Database>
-    </>
+    </ChromecastSideEffects>
   );
 }

@@ -6,26 +6,29 @@ import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
 import { Device } from "../devices/Device";
-import { Chromecast } from "../chromecasts/Chromecast";
+import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 
 export function StreamRandomTVShowEpisodeRestHandler(props: {
   client: Instance;
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>;
   activeDevice: Device;
-  activeChromecast: Chromecast;
 }) {
   return (
-    <RestActionHandler
-      restAction={streamRandomTVShowEpisodeRestAction}
-      handler={({ tvShow }) => {
-        streamRandomTVShowEpisode(
-          props.client,
-          props.downloadedTVShowsCollection,
-          props.activeDevice,
-          props.activeChromecast,
-          tvShow
-        );
-      }}
-    />
+    <ChromecastSideEffectsContext.Consumer>
+      {({ playVideo }) => (
+        <RestActionHandler
+          restAction={streamRandomTVShowEpisodeRestAction}
+          handler={({ tvShow }) => {
+            streamRandomTVShowEpisode(
+              props.client,
+              props.downloadedTVShowsCollection,
+              props.activeDevice,
+              playVideo,
+              tvShow
+            );
+          }}
+        />
+      )}
+    </ChromecastSideEffectsContext.Consumer>
   );
 }
