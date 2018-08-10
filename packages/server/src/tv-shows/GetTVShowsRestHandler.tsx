@@ -26,6 +26,18 @@ export function GetTVShowsRestHandler(props: {
       handler={() => {
         const tvShows = props.collection.value();
         return tvShows.map(tvShow => {
+          if (tvShow.done) {
+            return {
+              episode: tvShow,
+              torrentInfo: {
+                progress: 1,
+                downloadSpeed: 0,
+                name: tvShow.tvShowName,
+                peers: 0,
+                timeRemaining: 0
+              }
+            };
+          }
           const torrent = props.client.get(
             tvShow.magnetLink
           ) as WebTorrentTorrent;
