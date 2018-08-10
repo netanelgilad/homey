@@ -118,6 +118,13 @@ export function ChromecastSideEffects(props: {
                 );
               },
               async displayMessage(type, message) {
+                if (!state.client) {
+                  console.log(
+                    "Can't display message, client not connected yet."
+                  );
+                  return;
+                }
+
                 const player = await startApplication(state.client);
                 player.sendMessage({
                   type,

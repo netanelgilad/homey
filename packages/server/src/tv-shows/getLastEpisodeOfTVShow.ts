@@ -21,6 +21,6 @@ export async function getTVShowInfo(tvShow): Promise<TVShowInfo> {
     tvShowName: showInfo.name,
     coverImageUrl: showInfo.image.medium,
     episodes: showInfo._embedded.episodes,
-    previousEpisode: showInfo._embedded.previousEpisode
+    previousEpisode: showInfo._embedded.previousepisode
   };
 }
