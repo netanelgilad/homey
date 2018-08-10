@@ -1,25 +1,45 @@
 import * as React from "react";
 import { RestActionHandler } from "../rest-actions/RestActionHandler";
-import { cpuUsage, freemem } from "os-utils";
+import { cpuUsage as getCPUUsage, freemem } from "os-utils";
+import { RemoteSideEffectsContext } from "../devices/RemoteSideEffects";
+import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 
 export function GetServerStatsRestHandler() {
   return (
-    <RestActionHandler
-      restAction={{
-        path: "/server/stats",
-        method: "get",
-        parameters: {}
-      }}
-      handler={() => {
-        return new Promise<any>(resolve => {
-          cpuUsage(cpuUsage => {
-            resolve({
-              cpuUsage,
-              freeMemory: freemem()
-            });
-          });
-        });
-      }}
-    />
+    <ChromecastSideEffectsContext.Consumer>
+      {({ isConnected }) => (
+        <RemoteSideEffectsContext.Consumer>
+          {({ hasDetectedDevice }) => (
+            <RestActionHandler
+              restAction={{
+                path: "/server/stats",
+                method: "get",
+                parameters: {}
+              }}
+              handler={async () => {
+                const cpuUsage = await new Promise<any>(resolve => {
+                  getCPUUsage(cpuUsage => {
+                    resolve(cpuUsage);
+                  });
+                });
+
+                const freeMemory = freemem();
+
+                const deviceDetected = hasDetectedDevice();
+
+                const chromecastConnected = isConnected();
+
+                return {
+                  cpuUsage,
+                  freeMemory,
+                  deviceDetected,
+                  chromecastConnected
+                };
+              }}
+            />
+          )}
+        </RemoteSideEffectsContext.Consumer>
+      )}
+    </ChromecastSideEffectsContext.Consumer>
   );
 }

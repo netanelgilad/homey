@@ -24,34 +24,74 @@ class App extends React.Component {
       >
         {({ state, setState }) => (
           <Layout style={{ height: "100%", padding: "50px" }}>
-            <Layout.Header>
-              <APIAction<{}, { cpuUsage: number; freeMemory: number }>
-                initialValue={{ cpuUsage: 0, freeMemory: 0 }}
-                activate={() => Axios.get("/server/stats")}
-              >
-                {({ value, call }) => (
-                  <>
-                    <Button.Group style={{ float: "right" }}>
-                      <Button type="dashed">
-                        <Icon type="dashboard" />
-                        {(value!.cpuUsage * 100).toFixed(2)}%
-                      </Button>
-                      <Button>
-                        <Icon type="database" />
-                        {value!.freeMemory.toFixed(2)}
-                        MB
-                      </Button>
-                    </Button.Group>
-                    <Interval interval={1500} run={call} />
-                  </>
-                )}
-              </APIAction>
-            </Layout.Header>
             <Layout>
               <Layout.Sider width={600} theme="light">
                 <TvShowsList poll={!state.isPlaying} />
               </Layout.Sider>
               <Layout.Content>
+                <div style={{ height: "50px", backgroundColor: "#ffffff" }}>
+                  <APIAction<
+                    {},
+                    {
+                      cpuUsage: number;
+                      freeMemory: number;
+                      deviceDetected: boolean;
+                      chromecastConnected: boolean;
+                    }
+                  >
+                    initialValue={{
+                      cpuUsage: 0,
+                      freeMemory: 0,
+                      deviceDetected: false,
+                      chromecastConnected: false
+                    }}
+                    activate={() => Axios.get("/server/stats")}
+                  >
+                    {({ value, call }) => (
+                      <>
+                        <Button.Group style={{ float: "right" }}>
+                          <Button style={{ height: "50px", width: "130px" }}>
+                            <Icon
+                              type="chrome"
+                              style={
+                                value!.chromecastConnected
+                                  ? { color: "aqua" }
+                                  : { color: "orange" }
+                              }
+                            />
+                            Chromecast
+                          </Button>
+                          <Button style={{ height: "50px", width: "130px" }}>
+                            {value!.deviceDetected ? (
+                              <Icon
+                                type="check-circle"
+                                style={{ color: "aqua" }}
+                              />
+                            ) : (
+                              <Icon
+                                type="exclamation-circle"
+                                style={{ color: "orange" }}
+                              />
+                            )}
+                            Remote
+                          </Button>
+                          <Button style={{ height: "50px", width: "130px" }}>
+                            <Icon type="dashboard" />
+                            {(value!.cpuUsage * 100).toFixed(2)}%
+                          </Button>
+                          <Button style={{ height: "50px", width: "130px" }}>
+                            <Icon type="database" />
+                            {value!.freeMemory.toFixed(2)}
+                            MB
+                          </Button>
+                        </Button.Group>
+                        {!state.isPlaying && (
+                          <Interval interval={1500} run={call} />
+                        )}
+                      </>
+                    )}
+                  </APIAction>
+                </div>
                 <div
                   style={
                     state.isPlaying

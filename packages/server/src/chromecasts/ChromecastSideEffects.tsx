@@ -29,6 +29,7 @@ export const ChromecastSideEffectsContext = React.createContext<{
   showApplication();
   playVideo: PlayVideo;
   displayMessage: DisplayMessage;
+  isConnected(): boolean;
 }>(undefined);
 
 export class HomeyCastApp extends DefaultMediaReceiver {
@@ -130,6 +131,9 @@ export function ChromecastSideEffects(props: {
                   type,
                   message
                 });
+              },
+              isConnected() {
+                return !!state.client;
               }
             }}
           >

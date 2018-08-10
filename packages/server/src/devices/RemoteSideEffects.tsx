@@ -6,6 +6,7 @@ export type EmitRemoteData = (data: string) => void;
 
 export const RemoteSideEffectsContext = React.createContext<{
   emitRemoteData: EmitRemoteData;
+  hasDetectedDevice(): boolean;
 }>(undefined);
 
 export function RemoteSideEffects(props: { children: React.ReactNode }) {
@@ -27,6 +28,9 @@ export function RemoteSideEffects(props: { children: React.ReactNode }) {
                   const hexDataBuffer = new Buffer(data, "hex");
                   state.device.sendData(hexDataBuffer);
                 }
+              },
+              hasDetectedDevice() {
+                return !!state.device;
               }
             }}
           >
