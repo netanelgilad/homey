@@ -5,39 +5,42 @@ import { streamRandomTVShowEpisode } from "./tv-show-functions";
 import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
-import { Device } from "../devices/Device";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 import { StreamingServerSideEffectsContext } from "./StreamingServerSideEffects";
+import { RemoteSideEffectsContext } from "../devices/RemoteSideEffects";
 
 export function StreamRandomTVShowEpisodeRestHandler(props: {
   client: Instance;
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>;
-  activeDevice: Device;
 }) {
   return (
-    <StreamingServerSideEffectsContext.Consumer>
-      {({ startTorrentStreamServer }) => (
-        <ChromecastSideEffectsContext.Consumer>
-          {({ playVideo, showApplication, displayMessage }) => (
-            <RestActionHandler
-              restAction={streamRandomTVShowEpisodeRestAction}
-              handler={({ tvShow }) => {
-                showApplication();
+    <RemoteSideEffectsContext.Consumer>
+      {({ emitRemoteData }) => (
+        <StreamingServerSideEffectsContext.Consumer>
+          {({ startTorrentStreamServer }) => (
+            <ChromecastSideEffectsContext.Consumer>
+              {({ playVideo, showApplication, displayMessage }) => (
+                <RestActionHandler
+                  restAction={streamRandomTVShowEpisodeRestAction}
+                  handler={({ tvShow }) => {
+                    showApplication();
 
-                streamRandomTVShowEpisode(
-                  props.client,
-                  props.downloadedTVShowsCollection,
-                  props.activeDevice,
-                  startTorrentStreamServer,
-                  playVideo,
-                  displayMessage,
-                  tvShow
-                );
-              }}
-            />
+                    streamRandomTVShowEpisode(
+                      props.client,
+                      props.downloadedTVShowsCollection,
+                      emitRemoteData,
+                      startTorrentStreamServer,
+                      playVideo,
+                      displayMessage,
+                      tvShow
+                    );
+                  }}
+                />
+              )}
+            </ChromecastSideEffectsContext.Consumer>
           )}
-        </ChromecastSideEffectsContext.Consumer>
+        </StreamingServerSideEffectsContext.Consumer>
       )}
-    </StreamingServerSideEffectsContext.Consumer>
+    </RemoteSideEffectsContext.Consumer>
   );
 }

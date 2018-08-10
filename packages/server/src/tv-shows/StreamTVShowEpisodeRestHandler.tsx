@@ -5,40 +5,43 @@ import { streamTVShowEpisode } from "./tv-show-functions";
 import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
-import { Device } from "../devices/Device";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 import { StreamingServerSideEffectsContext } from "./StreamingServerSideEffects";
+import { RemoteSideEffectsContext } from "../devices/RemoteSideEffects";
 
 export function StreamTVShowEpisodeRestHandler(props: {
   client: Instance;
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>;
-  activeDevice: Device;
 }) {
   return (
-    <StreamingServerSideEffectsContext.Consumer>
-      {({ startTorrentStreamServer }) => (
-        <ChromecastSideEffectsContext.Consumer>
-          {({ playVideo, showApplication, displayMessage }) => (
-            <RestActionHandler
-              restAction={streamTVShowEpisodeRestAction}
-              handler={({ tvShow, season, episode }) => {
-                showApplication();
-                streamTVShowEpisode(
-                  props.client,
-                  props.downloadedTVShowsCollection,
-                  props.activeDevice,
-                  startTorrentStreamServer,
-                  playVideo,
-                  displayMessage,
-                  tvShow,
-                  season,
-                  episode
-                );
-              }}
-            />
+    <RemoteSideEffectsContext.Consumer>
+      {({ emitRemoteData }) => (
+        <StreamingServerSideEffectsContext.Consumer>
+          {({ startTorrentStreamServer }) => (
+            <ChromecastSideEffectsContext.Consumer>
+              {({ playVideo, showApplication, displayMessage }) => (
+                <RestActionHandler
+                  restAction={streamTVShowEpisodeRestAction}
+                  handler={({ tvShow, season, episode }) => {
+                    showApplication();
+                    streamTVShowEpisode(
+                      props.client,
+                      props.downloadedTVShowsCollection,
+                      emitRemoteData,
+                      startTorrentStreamServer,
+                      playVideo,
+                      displayMessage,
+                      tvShow,
+                      season,
+                      episode
+                    );
+                  }}
+                />
+              )}
+            </ChromecastSideEffectsContext.Consumer>
           )}
-        </ChromecastSideEffectsContext.Consumer>
+        </StreamingServerSideEffectsContext.Consumer>
       )}
-    </StreamingServerSideEffectsContext.Consumer>
+    </RemoteSideEffectsContext.Consumer>
   );
 }

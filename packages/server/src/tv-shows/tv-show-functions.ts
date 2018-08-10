@@ -6,8 +6,6 @@ import { join, basename, extname } from "path";
 import { search } from "thepiratebay";
 import { pad } from "../utils";
 import * as networkAddress from "network-address";
-import { Device } from "../devices/Device";
-import { emitCommand } from "../devices/runCommand";
 import { ChangeToChromecastCommand } from "../devices/AllDeviceCommands";
 import { find, endsWith, includes, sample, replace } from "lodash";
 import { encode } from "base-64";
@@ -19,6 +17,7 @@ import {
   DisplayMessage
 } from "../chromecasts/ChromecastSideEffects";
 import { StartTorrentStreamServer } from "./StreamingServerSideEffects";
+import { EmitRemoteData } from "../devices/RemoteSideEffects";
 
 export async function downloadTVShowEpisode(
   client: Instance,
@@ -70,7 +69,7 @@ export async function downloadTVShowEpisode(
 export async function streamTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
-  activeDevice: Device,
+  emitRemoteData: EmitRemoteData,
   startTorrentStreamServer: StartTorrentStreamServer,
   playVideo: PlayVideo,
   displayMessage: DisplayMessage,
@@ -109,7 +108,7 @@ export async function streamTVShowEpisode(
   );
 
   console.log("Changing to chromecast");
-  emitCommand(activeDevice, ChangeToChromecastCommand);
+  emitRemoteData(ChangeToChromecastCommand.data);
 
   const href =
     "http://" + networkAddress() + ":" + serverPort + "/" + largestFileIndex;
@@ -127,7 +126,7 @@ export async function streamTVShowEpisode(
 export async function streamRandomTVShowEpisode(
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
-  activeDevice: Device,
+  emitRemoteData: EmitRemoteData,
   startTorrentStreamServer: StartTorrentStreamServer,
   playVideo: PlayVideo,
   displayMessage: DisplayMessage,
@@ -140,7 +139,7 @@ export async function streamRandomTVShowEpisode(
   await streamTVShowEpisode(
     client,
     downloadedTVShowsCollection,
-    activeDevice,
+    emitRemoteData,
     startTorrentStreamServer,
     playVideo,
     displayMessage,

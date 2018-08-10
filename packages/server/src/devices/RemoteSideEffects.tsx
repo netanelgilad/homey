@@ -2,8 +2,10 @@ import * as React from "react";
 import { State } from "@react-atoms/core";
 import { BroadlinkDevicesMonitor } from "./BroadlinkDevicesMonitor";
 
+export type EmitRemoteData = (data: string) => void;
+
 export const RemoteSideEffectsContext = React.createContext<{
-  emitRemoteData(data: string);
+  emitRemoteData: EmitRemoteData;
 }>(undefined);
 
 export function RemoteSideEffects(props: { children: React.ReactNode }) {
