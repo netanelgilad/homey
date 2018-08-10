@@ -5,6 +5,8 @@ export type TVShowEpisode = {
   coverImageUrl: string;
   magnetLink: string;
   filePath?: string;
+  subtitlesUrl?: string;
+  done?: true;
 };
 
 export function canonizeTVShowName(name: string): string {

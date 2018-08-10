@@ -77,50 +77,81 @@ export async function streamTVShowEpisode(
   season?: number,
   episode?: number
 ) {
-  const { torrent, foundSeason, foundEpisode } = await downloadTVShowEpisode(
-    client,
-    downloadedTVShowsCollection,
-    displayMessage,
-    tvShow,
+  const tvShowName = canonizeTVShowName(tvShow);
+
+  const { season: foundSeason, episode: foundEpisode } = await getTVShowData(
+    tvShowName,
     season,
     episode
   );
-  if (!torrent) {
-    console.log("No torrent was added. Can't stream!");
-    return;
+
+  let downloadedTvShowEpisode = downloadedTVShowsCollection
+    .find({
+      tvShowName,
+      season,
+      episode
+    })
+    .value();
+
+  let videoUrl, subtitlesLink;
+
+  if (downloadedTvShowEpisode && downloadedTvShowEpisode.done) {
+    videoUrl = encodeURI(
+      "http://" +
+        networkAddress() +
+        `:35601/tv-shows/stream/downloaded/${tvShowName}/${foundSeason}/${foundEpisode}`
+    );
+    subtitlesLink = downloadedTvShowEpisode.subtitlesUrl;
+  } else {
+    const { torrent } = await downloadTVShowEpisode(
+      client,
+      downloadedTVShowsCollection,
+      displayMessage,
+      tvShow,
+      season,
+      episode
+    );
+    if (!torrent) {
+      console.log("No torrent was added. Can't stream!");
+      return;
+    }
+
+    const serverPort = await startTorrentStreamServer(torrent);
+
+    console.log("server and torrent are ready, streaming to chromecast...");
+
+    var largestFileIndex = torrent.files.indexOf(
+      torrent.files.reduce((a, b) => (a.length > b.length ? a : b))
+    );
+
+    // Wait for the start and end bytes in order to successfully get subtitles
+    await waitForTorrentBytes(torrent, largestFileIndex, 0, 64 * 1024);
+    await waitForTorrentBytes(
+      torrent,
+      largestFileIndex,
+      torrent.files[largestFileIndex].length - 64 * 1024,
+      torrent.files[largestFileIndex].length
+    );
+
+    videoUrl =
+      "http://" + networkAddress() + ":" + serverPort + "/" + largestFileIndex;
+
+    subtitlesLink = await getSubtitlesLink(
+      torrent,
+      foundSeason,
+      foundEpisode,
+      torrent.files[largestFileIndex].path
+    );
   }
-
-  const serverPort = await startTorrentStreamServer(torrent);
-
-  console.log("server and torrent are ready, streaming to chromecast...");
-
-  var largestFileIndex = torrent.files.indexOf(
-    torrent.files.reduce((a, b) => (a.length > b.length ? a : b))
-  );
-
-  // Wait for the start and end bytes in order to successfully get subtitles
-  await waitForTorrentBytes(torrent, largestFileIndex, 0, 64 * 1024);
-  await waitForTorrentBytes(
-    torrent,
-    largestFileIndex,
-    torrent.files[largestFileIndex].length - 64 * 1024,
-    torrent.files[largestFileIndex].length
-  );
 
   console.log("Changing to chromecast");
   emitRemoteData(ChangeToChromecastCommand.data);
 
-  const href =
-    "http://" + networkAddress() + ":" + serverPort + "/" + largestFileIndex;
-
-  const subtitlesLink = await getSubtitlesLink(
-    torrent,
-    foundSeason,
-    foundEpisode,
-    torrent.files[largestFileIndex].path
+  playVideo(
+    `${tvShowName} s${pad(foundSeason)}e${pad(foundEpisode)}`,
+    videoUrl,
+    subtitlesLink
   );
-
-  playVideo(torrent.files[largestFileIndex].name, href, subtitlesLink);
 }
 
 export async function streamRandomTVShowEpisode(
