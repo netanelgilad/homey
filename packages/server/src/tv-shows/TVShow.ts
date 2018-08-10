@@ -4,6 +4,7 @@ export type TVShowEpisode = {
   episode: number;
   coverImageUrl: string;
   magnetLink: string;
+  filePath?: string;
 };
 
 export function canonizeTVShowName(name: string): string {

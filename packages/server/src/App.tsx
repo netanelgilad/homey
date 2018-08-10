@@ -28,6 +28,7 @@ import {
 } from "./devices/RemoteSideEffects";
 import { ChangeToChromecastCommand } from "./devices/AllDeviceCommands";
 import { StreamingServerSideEffects } from "./tv-shows/StreamingServerSideEffects";
+import { GetServerStatsRestHandler } from "./stats/GetServerStatsRestHandler";
 
 export function App() {
   return (
@@ -38,6 +39,7 @@ export function App() {
             <ExpressServer port={35601}>
               <>
                 <SwaggerServer>
+                  <GetServerStatsRestHandler />
                   <EmitCommandRestHandler />
                   <WebTorrentClient>
                     {({ client }) => (
@@ -57,7 +59,18 @@ export function App() {
                                   existing.forEach(downloadedTvShow =>
                                     addTorrentToClient(
                                       client,
-                                      downloadedTvShow.magnetLink
+                                      downloadedTvShow.magnetLink,
+                                      () => {
+                                        collection
+                                          .find({
+                                            tvShowName:
+                                              downloadedTvShow.tvShowName,
+                                            season: downloadedTvShow.season,
+                                            episode: downloadedTvShow.episode
+                                          })
+                                          .assignIn({ done: true })
+                                          .write();
+                                      }
                                     )
                                   );
                                 }}

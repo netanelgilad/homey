@@ -167,19 +167,40 @@ export async function getTVShowData(
   return { tvShowInfo, season, episode };
 }
 
-export function addTorrentToClient(client: Instance, magnetLink: string) {
-  client.add(
-    magnetLink,
-    {
-      path: join(process.cwd(), "./torrents"),
-      announce: ["udp://public.popcorn-tracker.org:6969/announce"]
-    },
-    torrent => {
-      torrent.on("done", () => {
-        torrent.pause();
-      });
-    }
-  );
+export function addTorrentToClient(
+  client: Instance,
+  magnetLink: string,
+  onTorrentDone: () => void
+) {
+  return new Promise<WebTorrentTorrent>(resolve => {
+    client.add(
+      magnetLink,
+      {
+        path: join(process.cwd(), "./torrents"),
+        announce: [
+          "udp://public.popcorn-tracker.org:6969/announce",
+          "udp://tracker.openbittorrent.com:80",
+          "udp://tracker.publicbt.com:80",
+          "udp://tracker.istole.it:80",
+          "udp://tracker.btzoo.eu:80/announce",
+          "http://opensharing.org:2710/announce",
+          "udp://open.demonii.com:1337/announce",
+          "http://announce.torrentsmd.com:8080/announce.php",
+          "http://announce.torrentsmd.com:6969/announce",
+          "http://bt.careland.com.cn:6969/announce",
+          "http://i.bandito.org/announce",
+          "http://bttrack.9you.com/announce"
+        ]
+      },
+      torrent => {
+        torrent.on("done", () => {
+          torrent.pause();
+          onTorrentDone();
+        });
+        resolve(torrent);
+      }
+    );
+  });
 }
 
 export async function ensureTorrentForEpisode(
@@ -210,7 +231,20 @@ export async function ensureTorrentForEpisode(
       return;
     }
 
-    addTorrentToClient(client, magnetLink);
+    const torrent = await addTorrentToClient(client, magnetLink, () => {
+      downloadedTVShowsCollection
+        .find({
+          tvShowName: tvShowInfo.tvShowName,
+          season,
+          episode
+        })
+        .assignIn({ done: true })
+        .write();
+    });
+
+    var largestFileIndex = torrent.files.indexOf(
+      torrent.files.reduce((a, b) => (a.length > b.length ? a : b))
+    );
 
     console.log(`Torrent added.`);
 
@@ -219,7 +253,12 @@ export async function ensureTorrentForEpisode(
       season,
       episode,
       coverImageUrl: tvShowInfo.coverImageUrl,
-      magnetLink
+      magnetLink,
+      filePath: join(
+        process.cwd(),
+        "./torrents",
+        torrent.files[largestFileIndex].path
+      )
     };
 
     downloadedTVShowsCollection.push(downloadedTvShowEpisode).write();
