@@ -2,3 +2,4 @@ node_modules
 lib
 homey.json
 torrents
+/packages/server/config.json

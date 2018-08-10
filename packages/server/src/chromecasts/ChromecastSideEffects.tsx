@@ -7,6 +7,7 @@ import {
   RequestResponseController
 } from "castv2-client";
 import * as mime from "mime";
+import { readFileSync } from "fs";
 
 export type PlayVideo = (
   title,
@@ -19,6 +20,11 @@ export type DisplayMessage = (
   message: string
 ) => void;
 
+function getAppId() {
+  const config = JSON.parse(readFileSync("./config.json", "utf-8"));
+  return config.appId;
+}
+
 export const ChromecastSideEffectsContext = React.createContext<{
   showApplication();
   playVideo: PlayVideo;
@@ -26,7 +32,7 @@ export const ChromecastSideEffectsContext = React.createContext<{
 }>(undefined);
 
 export class HomeyCastApp extends DefaultMediaReceiver {
-  static APP_ID = "ECC0F01A";
+  static APP_ID = getAppId();
   homeyMessages: RequestResponseController;
 
   constructor(client, session) {
