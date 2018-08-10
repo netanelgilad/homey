@@ -19,7 +19,7 @@
     "prepublishOnly": "yarn clean && yarn build && cd ../frontend && yarn build && mv ./build ../server/lib/frontend"
   },
   "dependencies": {
-    "@react-atoms/core": "^0.0.16",
+    "@react-atoms/core": "^0.0.17",
     "axios": "^0.18.0",
     "base-64": "^0.1.0",
     "broadlinkjs-rm": "^0.6.0",
