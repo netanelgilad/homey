@@ -59,7 +59,9 @@ export const gridStyle = {
   width: "25%"
 };
 
-export function TvShowsList() {
+export function TvShowsList(props: {
+  poll: boolean;
+}) {
   return (
     <APIAction
       initialValue={[] as any[]}
@@ -147,7 +149,9 @@ export function TvShowsList() {
               </List.Item>
             )}
           />
-          <Interval interval={1500} run={call} />
+          {
+            props.poll && <Interval interval={1500} run={call} />
+          }
         </>
       )}
     </APIAction>

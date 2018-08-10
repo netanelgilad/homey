@@ -13,41 +13,44 @@ message.config({
 class App extends React.Component {
   public render() {
     return (
-      <Layout style={{ height: "100%", padding: "50px" }}>
-        <Layout.Sider width={600} theme="light">
-          <TvShowsList />
-        </Layout.Sider>
-        <Layout.Content>
-          <State
-            initialState={{
-              isPlaying: false
-            }}
-          >
-            {({state, setState}) => (
+      <State
+        initialState={{
+          isPlaying: false
+        }}
+      >
+        {({ state, setState }) => (
+          <Layout style={{ height: "100%", padding: "50px" }}>
+            <Layout.Sider width={600} theme="light">
+              <TvShowsList poll={!state.isPlaying} />
+            </Layout.Sider>
+            <Layout.Content>
               <div
-                style={state.isPlaying ? {
-                  position: "fixed",
-                  top: 0,
-                  left: 0,
-                  width: "100%",
-                  height: "100%"
-                } : {
-                  height: "100%"
-                }}
+                style={
+                  state.isPlaying
+                    ? {
+                        position: "fixed",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%"
+                      }
+                    : {
+                        height: "100%"
+                      }
+                }
               >
-                <CastMediaPlayer 
-                  onVideoPlaying={() => setState({isPlaying: true})}
-                  onVideoStopped={() => setState({isPlaying: false})}
+                <CastMediaPlayer
+                  onVideoPlaying={() => setState({ isPlaying: true })}
+                  onVideoStopped={() => setState({ isPlaying: false })}
                   onDisplayMessage={({ type, message: text }) => {
                     message[type](text);
                   }}
                 />
               </div>
-            )}
-          </State>
-          
-        </Layout.Content>
-      </Layout>
+            </Layout.Content>
+          </Layout>
+        )}
+      </State>
     );
   }
 }
