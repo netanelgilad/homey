@@ -1,6 +1,6 @@
 {
   "name": "@homey/server",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "main": "./lib/es2017/index.js",
   "files": [
     "lib"
