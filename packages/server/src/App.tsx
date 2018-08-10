@@ -55,7 +55,9 @@ export function App() {
                                       .size()
                                       .value()} torrents.`
                                   );
-                                  const existing = collection.value();
+                                  const existing = collection
+                                    .filter(x => !x.done)
+                                    .value();
                                   existing.forEach(downloadedTvShow =>
                                     addTorrentToClient(
                                       client,
