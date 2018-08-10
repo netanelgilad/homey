@@ -79,15 +79,15 @@ export async function streamTVShowEpisode(
 ) {
   const tvShowName = canonizeTVShowName(tvShow);
 
-  const { season: foundSeason, episode: foundEpisode } = await getTVShowData(
-    tvShowName,
-    season,
-    episode
-  );
+  const {
+    tvShowInfo,
+    season: foundSeason,
+    episode: foundEpisode
+  } = await getTVShowData(tvShowName, season, episode);
 
   let downloadedTvShowEpisode = downloadedTVShowsCollection
     .find({
-      tvShowName,
+      tvShowName: tvShowInfo.tvShowName,
       season,
       episode
     })
@@ -148,7 +148,7 @@ export async function streamTVShowEpisode(
   emitRemoteData(ChangeToChromecastCommand.data);
 
   playVideo(
-    `${tvShowName} s${pad(foundSeason)}e${pad(foundEpisode)}`,
+    `${tvShowInfo.tvShowName} s${pad(foundSeason)}e${pad(foundEpisode)}`,
     videoUrl,
     subtitlesLink
   );

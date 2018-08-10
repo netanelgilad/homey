@@ -101,7 +101,7 @@ export function ChromecastSideEffects(props: {
                   metadata: {
                     type: 0,
                     metadataType: 0,
-                    title: "Homey - " + title,
+                    title,
                     images: []
                   }
                 };
