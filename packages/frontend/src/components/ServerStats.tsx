@@ -63,7 +63,7 @@ export function ServerStats(props: { poll: boolean }) {
               {Space(value!.freeSpace)}
             </Button>
           </Button.Group>
-          {!props.poll && <Interval interval={1500} run={call} />}
+          {props.poll && <Interval interval={1500} run={call} />}
         </>
       )}
     </APIAction>
