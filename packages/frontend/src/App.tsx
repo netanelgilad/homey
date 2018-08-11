@@ -2,7 +2,7 @@ import * as React from "react";
 import Layout from "antd/lib/layout";
 import message from "antd/lib/message";
 import "./App.css";
-import { TvShowsList } from "./components/TvShowsList";
+import { TvShowsList, MegaByte, KiloByte, GigaByte } from "./components/TvShowsList";
 import { CastMediaPlayer } from "./components/CastMediaPlayer";
 import { State, Interval } from "@react-atoms/core";
 import Button from "antd/lib/button";
@@ -37,11 +37,13 @@ class App extends React.Component {
                       freeMemory: number;
                       deviceDetected: boolean;
                       chromecastConnected: boolean;
+                      freeSpace: number;
                     }
                   >
                     initialValue={{
                       cpuUsage: 0,
                       freeMemory: 0,
+                      freeSpace: 0,
                       deviceDetected: false,
                       chromecastConnected: false
                     }}
@@ -84,6 +86,10 @@ class App extends React.Component {
                             {value!.freeMemory.toFixed(2)}
                             MB
                           </Button>
+                          <Button style={{ height: "50px", width: "130px" }}>
+                            <Icon type="file" />
+                            {Space(value!.freeSpace)}
+                          </Button>
                         </Button.Group>
                         {!state.isPlaying && (
                           <Interval interval={1500} run={call} />
@@ -122,6 +128,21 @@ class App extends React.Component {
       </State>
     );
   }
+}
+
+export function Space(space: number ) {
+  let result = space.toFixed(2) + "B";
+
+  if (space > GigaByte * 1.1) {
+    result = (space / GigaByte).toFixed(2) + "GB";
+  }
+  else if (space > MegaByte * 1.1) {
+    result = (space / MegaByte).toFixed(2) + "MB";
+  } else if (space > KiloByte * 1.1) {
+    result = (space / KiloByte).toFixed(2) + "K";
+  }
+
+  return result;
 }
 
 export default App;

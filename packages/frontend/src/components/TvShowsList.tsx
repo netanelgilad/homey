@@ -9,6 +9,7 @@ import { APIAction } from "../network/APIAction";
 
 export const KiloByte = 1024;
 export const MegaByte = 1024 * 1024;
+export const GigaByte = MegaByte * 1024;
 
 export const Second = 1000;
 export const Minute = 1000 * 60;

@@ -3,6 +3,7 @@ import { RestActionHandler } from "../rest-actions/RestActionHandler";
 import { cpuUsage as getCPUUsage, freemem } from "os-utils";
 import { RemoteSideEffectsContext } from "../devices/RemoteSideEffects";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
+import { check } from "diskusage";
 
 export function GetServerStatsRestHandler() {
   return (
@@ -29,11 +30,19 @@ export function GetServerStatsRestHandler() {
 
                 const chromecastConnected = isConnected();
 
+                const freeSpace = await new Promise((resolve, reject) => {
+                  check("./torrents", (err, result) => {
+                    if (err) reject(err);
+                    else resolve(result.available);
+                  });
+                });
+
                 return {
                   cpuUsage,
                   freeMemory,
                   deviceDetected,
-                  chromecastConnected
+                  chromecastConnected,
+                  freeSpace
                 };
               }}
             />
