@@ -6,29 +6,41 @@ import { Instance } from "webtorrent";
 import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
+import { ComponentLogger } from "../activity-log/ComponentLogger";
 
 export function DownloadTVShowRestHandler(props: {
   client: Instance;
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>;
 }) {
   return (
-    <ChromecastSideEffectsContext.Consumer>
-      {({ displayMessage, showApplication }) => (
-        <RestActionHandler
-          restAction={downloadTVShowRestAction}
-          handler={async ({ tvShow, season, episode }) => {
-            showApplication();
-            await downloadTVShowEpisode(
-              props.client,
-              props.downloadedTVShowsCollection,
-              displayMessage,
-              tvShow,
-              season,
-              episode
-            );
-          }}
-        />
+    <ComponentLogger name="Downloader">
+      {({ log }) => (
+        <ChromecastSideEffectsContext.Consumer>
+          {({ displayMessage, showApplication }) => (
+            <RestActionHandler
+              restAction={downloadTVShowRestAction}
+              handler={async ({ tvShow, season, episode }) => {
+                log({
+                  level: "info",
+                  message: `Got request to download episode ${episode} season ${season ||
+                    "NA"} of ${tvShow}`
+                });
+
+                showApplication();
+                await downloadTVShowEpisode(
+                  log,
+                  props.client,
+                  props.downloadedTVShowsCollection,
+                  displayMessage,
+                  tvShow,
+                  season,
+                  episode
+                );
+              }}
+            />
+          )}
+        </ChromecastSideEffectsContext.Consumer>
       )}
-    </ChromecastSideEffectsContext.Consumer>
+    </ComponentLogger>
   );
 }

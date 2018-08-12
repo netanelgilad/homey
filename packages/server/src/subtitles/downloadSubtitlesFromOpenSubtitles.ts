@@ -5,16 +5,17 @@ import * as gunzip from "gunzip-maybe";
 import * as srt2vtt from "srt-to-vtt";
 import { extname, basename, dirname, join } from "path";
 import { createWriteStream } from "fs";
+import { Log } from "../activity-log/ComponentLogger";
 
 export async function downloadSubtitlesFromOpenSubtitles(
+  log: Log,
   filePath: string,
   isMatchingResult: (result: any) => boolean
 ): Promise<string> {
-  console.log("fetching subtitles for file at", filePath);
+  log({ level: "info", message: `Fetching subtitles for file at ${filePath}` });
   const results = await getResultsFromOpenSubtitles(filePath);
 
   if (results.length > 0) {
-    console.log(`got ${results.length} results from opensubtitles`);
     const subtitle: any = find(results, isMatchingResult);
 
     if (!subtitle) {
@@ -22,7 +23,10 @@ export async function downloadSubtitlesFromOpenSubtitles(
     } else {
       return new Promise<string>((resolve, reject) => {
         try {
-          console.log("Downloading subtitles file...");
+          log({
+            level: "info",
+            message: "Subtitles found. Downloading subtitles file..."
+          });
           get(subtitle.SubDownloadLink, response => {
             const videoFileExtenstion = extname(filePath);
             const fileName = basename(filePath, videoFileExtenstion);
@@ -37,7 +41,7 @@ export async function downloadSubtitlesFromOpenSubtitles(
               reject(err);
             });
             stream.on("close", () => {
-              console.log("subtitles file downloaded.");
+              log({ level: "success", message: "Subtitles file downloaded." });
               resolve(targetFilePath);
             });
           });

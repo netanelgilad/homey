@@ -6,6 +6,7 @@
     "@react-atoms/core": "^0.0.13",
     "antd": "^3.8.0",
     "axios": "^0.18.0",
+    "date-fns": "^1.29.0",
     "react": "^16.4.2",
     "react-dom": "^16.4.2",
     "react-full-screen": "^0.2.2",

@@ -9,7 +9,6 @@ export function GetSubtitlesFromFileRestHandler() {
       restAction={getSubtitlesFromFileRestAction}
       handler={({ filePath }) => {
         console.log("got request for subtitles");
-
         return createReadStream(filePath);
       }}
     />

@@ -5,8 +5,10 @@ import { basename, extname, join } from "path";
 import { downloadSubtitlesFromOpenSubtitles } from "../subtitles/downloadSubtitlesFromOpenSubtitles";
 import * as networkAddress from "network-address";
 import * as srt2vtt from "srt-to-vtt";
+import { Log } from "../activity-log/ComponentLogger";
 
 export async function ensureSubtitlesForTorrent(
+  log: Log,
   torrent: Torrent,
   isMatchingResultFromOpenSubtitles: (result: any) => boolean
 ): Promise<string> {
@@ -40,6 +42,7 @@ export async function ensureSubtitlesForTorrent(
     );
 
     subtitlesFilePath = await downloadSubtitlesFromOpenSubtitles(
+      log,
       join("./torrents", videoFile.path),
       isMatchingResultFromOpenSubtitles
     );

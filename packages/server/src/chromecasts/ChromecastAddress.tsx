@@ -21,13 +21,11 @@ export function ChromecastAddress(props: {
 
           browser.on("serviceUp", service => {
             if (service.txtRecord.fn === props.name) {
-              console.log("Found requested chromecast, stopped looking.");
               browser.stop();
               resolve(service.addresses[0]);
             }
           });
 
-          console.log("Looking for chromecasts...");
           browser.start();
         });
       }}

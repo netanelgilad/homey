@@ -30,35 +30,36 @@ export function ServerStats(props: { poll: boolean }) {
       {({ value, call }) => (
         <>
           <Button.Group style={{ float: "right" }}>
-            <Button style={{ height: "50px", width: "130px" }}>
+            <Button style={{ height: "40px", width: "45px" }}>
               <Icon
                 type="chrome"
                 style={
                   value!.chromecastConnected
                     ? { color: "aqua" }
-                    : { color: "orange" }
+                    : { color: "red" }
                 }
               />
-              Chromecast
             </Button>
-            <Button style={{ height: "50px", width: "130px" }}>
-              {value!.deviceDetected ? (
-                <Icon type="check-circle" style={{ color: "aqua" }} />
-              ) : (
-                <Icon type="exclamation-circle" style={{ color: "orange" }} />
-              )}
-              Remote
+            <Button style={{ height: "40px", width: "45px" }}>
+              <Icon
+                type="global"
+                style={
+                  value!.deviceDetected
+                    ? { color: "aqua" }
+                    : { color: "red" }
+                }
+              />
             </Button>
-            <Button style={{ height: "50px", width: "130px" }}>
+            <Button style={{ height: "40px", width: "110px" }}>
               <Icon type="dashboard" />
               {(value!.cpuUsage * 100).toFixed(2)}%
             </Button>
-            <Button style={{ height: "50px", width: "130px" }}>
+            <Button style={{ height: "40px", width: "110px" }}>
               <Icon type="database" />
               {value!.freeMemory.toFixed(2)}
               MB
             </Button>
-            <Button style={{ height: "50px", width: "130px" }}>
+            <Button style={{ height: "40px", width: "110px" }}>
               <Icon type="file" />
               {Space(value!.freeSpace)}
             </Button>

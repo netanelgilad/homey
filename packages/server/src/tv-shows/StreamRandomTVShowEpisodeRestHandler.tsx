@@ -8,39 +8,45 @@ import { TVShowEpisode } from "./TVShow";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 import { StreamingServerSideEffectsContext } from "./StreamingServerSideEffects";
 import { RemoteSideEffectsContext } from "../devices/RemoteSideEffects";
+import { ComponentLogger } from "../activity-log/ComponentLogger";
 
 export function StreamRandomTVShowEpisodeRestHandler(props: {
   client: Instance;
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>;
 }) {
   return (
-    <RemoteSideEffectsContext.Consumer>
-      {({ emitRemoteData }) => (
-        <StreamingServerSideEffectsContext.Consumer>
-          {({ startTorrentStreamServer }) => (
-            <ChromecastSideEffectsContext.Consumer>
-              {({ playVideo, showApplication, displayMessage }) => (
-                <RestActionHandler
-                  restAction={streamRandomTVShowEpisodeRestAction}
-                  handler={({ tvShow }) => {
-                    showApplication();
+    <ComponentLogger name="Downloader">
+      {({ log }) => (
+        <RemoteSideEffectsContext.Consumer>
+          {({ emitRemoteData }) => (
+            <StreamingServerSideEffectsContext.Consumer>
+              {({ startTorrentStreamServer }) => (
+                <ChromecastSideEffectsContext.Consumer>
+                  {({ playVideo, showApplication, displayMessage }) => (
+                    <RestActionHandler
+                      restAction={streamRandomTVShowEpisodeRestAction}
+                      handler={({ tvShow }) => {
+                        showApplication();
 
-                    streamRandomTVShowEpisode(
-                      props.client,
-                      props.downloadedTVShowsCollection,
-                      emitRemoteData,
-                      startTorrentStreamServer,
-                      playVideo,
-                      displayMessage,
-                      tvShow
-                    );
-                  }}
-                />
+                        streamRandomTVShowEpisode(
+                          log,
+                          props.client,
+                          props.downloadedTVShowsCollection,
+                          emitRemoteData,
+                          startTorrentStreamServer,
+                          playVideo,
+                          displayMessage,
+                          tvShow
+                        );
+                      }}
+                    />
+                  )}
+                </ChromecastSideEffectsContext.Consumer>
               )}
-            </ChromecastSideEffectsContext.Consumer>
+            </StreamingServerSideEffectsContext.Consumer>
           )}
-        </StreamingServerSideEffectsContext.Consumer>
+        </RemoteSideEffectsContext.Consumer>
       )}
-    </RemoteSideEffectsContext.Consumer>
+    </ComponentLogger>
   );
 }

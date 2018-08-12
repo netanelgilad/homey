@@ -19,8 +19,10 @@ import {
 import { StartTorrentStreamServer } from "./StreamingServerSideEffects";
 import { EmitRemoteData } from "../devices/RemoteSideEffects";
 import { ensureSubtitlesForTorrent } from "./ensureSubtitlesForTorrent";
+import { Log } from "../activity-log/ComponentLogger";
 
 export async function downloadTVShowEpisode(
+  log: Log,
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   displayMessage: DisplayMessage,
@@ -36,11 +38,12 @@ export async function downloadTVShowEpisode(
     episode: foundEpisode
   } = await getTVShowData(tvShowName, season, episode);
 
-  console.log(
-    `Download episode ${foundEpisode} season ${foundSeason} of ${
+  log({
+    level: "info",
+    message: `Ensuring download of episode ${foundEpisode} season ${foundSeason} of ${
       tvShowInfo.tvShowName
     }`
-  );
+  });
 
   const torrent = await ensureTorrentForEpisode(
     client,
@@ -53,15 +56,16 @@ export async function downloadTVShowEpisode(
   let subtitlesUrl;
 
   if (!torrent) {
-    displayMessage(
-      "error",
-      `No torrent was found for ${
+    log({
+      level: "error",
+      message: `No torrent was found for ${
         tvShowInfo.tvShowName
       } season ${foundSeason} episode ${foundEpisode}!`
-    );
+    });
   } else {
     try {
       subtitlesUrl = await ensureSubtitlesForTorrent(
+        log,
         torrent,
         result =>
           result.SeriesSeason === foundSeason &&
@@ -77,7 +81,10 @@ export async function downloadTVShowEpisode(
         .assignIn({ subtitlesUrl })
         .write();
     } catch (err) {
-      console.log(`Failed to get subtitles for torrent ${torrent.name}.`, err);
+      log({
+        level: "error",
+        message: `Failed to get subtitles for torrent ${torrent.name}. ${err}`
+      });
     }
   }
 
@@ -90,6 +97,7 @@ export async function downloadTVShowEpisode(
 }
 
 export async function streamTVShowEpisode(
+  log: Log,
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   emitRemoteData: EmitRemoteData,
@@ -127,6 +135,7 @@ export async function streamTVShowEpisode(
     subtitlesLink = downloadedTvShowEpisode.subtitlesUrl;
   } else {
     const { torrent, subtitlesUrl } = await downloadTVShowEpisode(
+      log,
       client,
       downloadedTVShowsCollection,
       displayMessage,
@@ -141,7 +150,10 @@ export async function streamTVShowEpisode(
 
     const serverPort = await startTorrentStreamServer(torrent);
 
-    console.log("server and torrent are ready, streaming to chromecast...");
+    log({
+      level: "info",
+      message: "server and torrent are ready, streaming to chromecast..."
+    });
 
     var largestFileIndex = torrent.files.indexOf(
       torrent.files.reduce((a, b) => (a.length > b.length ? a : b))
@@ -164,6 +176,7 @@ export async function streamTVShowEpisode(
 }
 
 export async function streamRandomTVShowEpisode(
+  log: Log,
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   emitRemoteData: EmitRemoteData,
@@ -176,7 +189,15 @@ export async function streamRandomTVShowEpisode(
   const tvShowInfo = await getTVShowInfo(tvShowName);
   const randomEpisode = sample(tvShowInfo.episodes);
 
+  log({
+    level: "info",
+    message: `Streaming random episode ${randomEpisode.number} season ${
+      randomEpisode.season
+    } of ${tvShowInfo.tvShowName}`
+  });
+
   await streamTVShowEpisode(
+    log,
     client,
     downloadedTVShowsCollection,
     emitRemoteData,

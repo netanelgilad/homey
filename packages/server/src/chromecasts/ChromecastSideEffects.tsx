@@ -8,6 +8,7 @@ import {
 } from "castv2-client";
 import * as mime from "mime";
 import { readFileSync } from "fs";
+import { ComponentLogger, Log } from "../activity-log/ComponentLogger";
 
 export type PlayVideo = (
   title,
@@ -58,111 +59,127 @@ export function ChromecastSideEffects(props: {
   children: React.ReactNode;
 }) {
   return (
-    <State
-      initialState={{
-        client: undefined
-      }}
-    >
-      {({ state, setState }) => (
-        <>
-          <ChromecastAddress name={props.name}>
-            {({ address }) =>
-              address && (
-                <Lifecycle
-                  onDidMount={async () => {
-                    getConnectedClient(address, client => setState({ client }));
-                  }}
-                />
-              )
-            }
-          </ChromecastAddress>
-          <ChromecastSideEffectsContext.Provider
-            value={{
-              showApplication() {
-                if (!state.client) {
-                  console.log("not connected to chromecast yet..");
-                } else {
-                  startApplication(state.client);
+    <ComponentLogger name="Chromecast">
+      {({ log }) => (
+        <State
+          initialState={{
+            client: undefined
+          }}
+        >
+          {({ state, setState }) => (
+            <>
+              <ChromecastAddress name={props.name}>
+                {({ address }) =>
+                  address && (
+                    <Lifecycle
+                      onDidMount={async () => {
+                        getConnectedClient(log, address, client =>
+                          setState({ client })
+                        );
+                      }}
+                    />
+                  )
                 }
-              },
-              async playVideo(title, videoLink, subtitlesLink) {
-                if (!state.client) {
-                  console.log(
-                    "Chromecast not connected yet. Can't play video..."
-                  );
-                  return;
-                }
-                const player = await startApplication(state.client);
-                const media = {
-                  contentId: videoLink,
-                  contentType: (mime as any).lookup(videoLink, "video/mp4"),
-                  streamType: "BUFFERED",
-                  tracks: [subtitlesLink].map(toSubtitles),
-                  metadata: {
-                    type: 0,
-                    metadataType: 0,
-                    title,
-                    images: []
-                  }
-                };
-
-                player.load(
-                  media,
-                  {
-                    autoplay: true,
-                    currentTime: 0,
-                    activeTrackIds: [1]
+              </ChromecastAddress>
+              <ChromecastSideEffectsContext.Provider
+                value={{
+                  showApplication() {
+                    if (!state.client) {
+                      log({
+                        level: "warning",
+                        message: "not connected to chromecast yet.."
+                      });
+                    } else {
+                      startApplication(log, state.client);
+                    }
                   },
-                  () => {
-                    console.log("Video loaded.");
-                  }
-                );
-              },
-              async displayMessage(type, message) {
-                if (!state.client) {
-                  console.log(
-                    "Can't display message, client not connected yet."
-                  );
-                  return;
-                }
+                  async playVideo(title, videoLink, subtitlesLink) {
+                    if (!state.client) {
+                      log({
+                        level: "error",
+                        message:
+                          "Chromecast not connected yet. Can't play video..."
+                      });
+                      return;
+                    }
+                    const player = await startApplication(log, state.client);
+                    const media = {
+                      contentId: videoLink,
+                      contentType: (mime as any).lookup(videoLink, "video/mp4"),
+                      streamType: "BUFFERED",
+                      tracks: [subtitlesLink].map(toSubtitles),
+                      metadata: {
+                        type: 0,
+                        metadataType: 0,
+                        title,
+                        images: []
+                      }
+                    };
 
-                const player = await startApplication(state.client);
-                player.sendMessage({
-                  type,
-                  message
-                });
-              },
-              isConnected() {
-                return !!state.client;
-              }
-            }}
-          >
-            {props.children}
-          </ChromecastSideEffectsContext.Provider>
-        </>
+                    player.load(
+                      media,
+                      {
+                        autoplay: true,
+                        currentTime: 0,
+                        activeTrackIds: [1]
+                      },
+                      () => {
+                        log({ level: "success", message: "Video loaded." });
+                      }
+                    );
+                  },
+                  async displayMessage(type, message) {
+                    if (!state.client) {
+                      log({
+                        level: "warning",
+                        message:
+                          "Can't display message, client not connected yet."
+                      });
+                      return;
+                    }
+
+                    const player = await startApplication(log, state.client);
+                    player.sendMessage({
+                      type,
+                      message
+                    });
+                  },
+                  isConnected() {
+                    return !!state.client;
+                  }
+                }}
+              >
+                {props.children}
+              </ChromecastSideEffectsContext.Provider>
+            </>
+          )}
+        </State>
       )}
-    </State>
+    </ComponentLogger>
   );
 }
 
-export function startApplication(client) {
+export function startApplication(log: Log, client) {
   return new Promise<any>((resolve, reject) => {
-    console.log("Getting session on chromecast...");
+    log({ level: "info", message: "Getting session on chromecast..." });
     client.getSessions((err, sess) => {
       if (err) {
-        console.log("An error occured trying to get sessions", err);
+        log({
+          level: "error",
+          message: `An error occured trying to get sessions. ${err}`
+        });
         reject(err);
       }
 
       var session = sess[0];
       if (session && session.appId === HomeyCastApp.APP_ID) {
         client.join(session, HomeyCastApp, (_err, p) => {
-          console.log("Joined session.");
+          log({ level: "info", message: "Joined session." });
           resolve(p);
         });
       } else {
         client.launch(HomeyCastApp, (_err, p) => {
-          console.log("Launched session");
+          log({ level: "info", message: "Launched session" });
           resolve(p);
         });
       }
@@ -184,6 +201,7 @@ function toSubtitles(url, i) {
 }
 
 async function getConnectedClient(
+  log: Log,
   address: string,
   onClientConnected: (client: Client) => void
 ) {
@@ -192,17 +210,13 @@ async function getConnectedClient(
     address,
     () => onClientConnected(client)
   );
-  client.on("close", (...args) => {
-    console.log("Connection to chromecast was closed!");
-    console.log(...args);
-    getConnectedClient(address, onClientConnected);
-  });
-  client.on("status", status => {
-    console.log("client status", status);
+  client.on("close", () => {
+    log({ level: "warning", message: "Connection to chromecast was closed!" });
+    getConnectedClient(log, address, onClientConnected);
   });
   client.on("error", err => {
-    console.log("Error: %s", err.message);
+    log({ level: "error", message: `Client Error: ${err}` });
     client.close();
-    getConnectedClient(address, onClientConnected);
+    getConnectedClient(log, address, onClientConnected);
   });
 }

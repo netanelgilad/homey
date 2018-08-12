@@ -7,6 +7,7 @@ import {
 import { CastMediaPlayer } from "./components/CastMediaPlayer";
 import { State } from "@react-atoms/core";
 import { ServerStats } from "./components/ServerStats";
+import { ActivityLog } from "./components/ActivityLog";
 
 message.config({
   top: 50
@@ -27,7 +28,7 @@ class App extends React.Component {
                 <TvShowsList poll={!state.isPlaying} />
               </Layout.Sider>
               <Layout.Content>
-                <div style={{ height: "50px", backgroundColor: "#ffffff" }}>
+                <div style={{ height: "40px", backgroundColor: "#ffffff" }}>
                   <ServerStats poll={!state.isPlaying} />
                 </div>
                 <div
@@ -41,7 +42,7 @@ class App extends React.Component {
                           height: "100%"
                         }
                       : {
-                          height: "100%"
+                          height: "300px"
                         }
                   }
                 >
@@ -53,6 +54,7 @@ class App extends React.Component {
                     }}
                   />
                 </div>
+                <ActivityLog poll={!state.isPlaying} />
               </Layout.Content>
             </Layout>
           </Layout>
