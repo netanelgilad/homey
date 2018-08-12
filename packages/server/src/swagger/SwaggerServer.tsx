@@ -16,11 +16,9 @@ import {
   RestResponseType
 } from "../rest-actions/RestAction";
 import { Map } from "immutable";
-import { ExpressServerContext } from '../express/ExpressServer';
+import { ExpressServerContext } from "../express/ExpressServer";
 
-export function SwaggerServer(props: {
-  children?: React.ReactNode;
-}) {
+export function SwaggerServer(props: { children?: React.ReactNode }) {
   return (
     <ExpressServerContext.Consumer>
       {({ app }) => (
@@ -191,5 +189,7 @@ export function restParameterLocationToSwaggerLocation(
       return "path";
     case RestParameterLocation.FormData:
       return "formData";
+    case RestParameterLocation.Query:
+      return "query";
   }
 }

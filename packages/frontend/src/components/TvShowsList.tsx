@@ -137,10 +137,10 @@ export function TvShowsList(props: {
                           )}
                         </div>
                         <div>
-                          {tvShowEpisodeInfo.torrentInfo.progress === 1 ? (
-                            <Tag color="green">Download Complete</Tag>
+                          {tvShowEpisodeInfo.episode.subtitlesUrl ? (
+                            <Tag color="green">Has Subtitles</Tag>
                           ) : (
-                            <Tag color="orange">Downloading...</Tag>
+                            <Tag color="orange">No Subtitles</Tag>
                           )}
                         </div>
                       </div>

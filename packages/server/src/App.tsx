@@ -7,7 +7,6 @@ import { EmitCommandRestHandler } from "./devices/EmitCommandRestHandler";
 import { DownloadTVShowRestHandler } from "./tv-shows/DownloadTVShowRestHandler";
 import { WebTorrentClient } from "./webtorrent/WebTorrentClient";
 import { TVShowEpisode } from "./tv-shows/TVShow";
-import { GetSubtitlesFromOpenSubtitlesRestHandler } from "./subtitles/GetSubtitlesFromOpenSubtitlesRestHandler";
 import { GetSubtitlesFromFileRestHandler } from "./subtitles/GetSubtitlesFromFileRestHandler";
 import { StreamTVShowEpisodeRestHandler } from "./tv-shows/StreamTVShowEpisodeRestHandler";
 import { StreamRandomTVShowEpisodeRestHandler } from "./tv-shows/StreamRandomTVShowEpisodeRestHandler";
@@ -34,7 +33,7 @@ export function App() {
   return (
     <StreamingServerSideEffects>
       <RemoteSideEffects>
-        <ChromecastSideEffects name="Living Room TV">
+        <ChromecastSideEffects name="Netanels Macbook Pro">
           <Database filePath="homey.json">
             <ExpressServer port={35601}>
               <>
@@ -99,7 +98,6 @@ export function App() {
                       </>
                     )}
                   </WebTorrentClient>
-                  <GetSubtitlesFromOpenSubtitlesRestHandler />
                   <GetSubtitlesFromFileRestHandler />
                   <RemoteSideEffectsContext.Consumer>
                     {({ emitRemoteData }) => (

@@ -18,6 +18,7 @@ import {
 } from "../chromecasts/ChromecastSideEffects";
 import { StartTorrentStreamServer } from "./StreamingServerSideEffects";
 import { EmitRemoteData } from "../devices/RemoteSideEffects";
+import { ensureSubtitlesForTorrent } from "./ensureSubtitlesForTorrent";
 
 export async function downloadTVShowEpisode(
   client: Instance,
@@ -49,6 +50,7 @@ export async function downloadTVShowEpisode(
     foundSeason,
     foundEpisode
   );
+  let subtitlesUrl;
 
   if (!torrent) {
     displayMessage(
@@ -57,10 +59,31 @@ export async function downloadTVShowEpisode(
         tvShowInfo.tvShowName
       } season ${foundSeason} episode ${foundEpisode}!`
     );
+  } else {
+    try {
+      subtitlesUrl = await ensureSubtitlesForTorrent(
+        torrent,
+        result =>
+          result.SeriesSeason === foundSeason &&
+          result.SeriesEpisode === foundEpisode
+      );
+
+      downloadedTVShowsCollection
+        .find({
+          tvShowName: tvShowInfo.tvShowName,
+          season,
+          episode
+        })
+        .assignIn({ subtitlesUrl })
+        .write();
+    } catch (err) {
+      console.log(`Failed to get subtitles for torrent ${torrent.name}.`, err);
+    }
   }
 
   return {
     torrent,
+    subtitlesUrl,
     foundSeason,
     foundEpisode
   };
@@ -103,7 +126,7 @@ export async function streamTVShowEpisode(
     );
     subtitlesLink = downloadedTvShowEpisode.subtitlesUrl;
   } else {
-    const { torrent } = await downloadTVShowEpisode(
+    const { torrent, subtitlesUrl } = await downloadTVShowEpisode(
       client,
       downloadedTVShowsCollection,
       displayMessage,
@@ -124,24 +147,10 @@ export async function streamTVShowEpisode(
       torrent.files.reduce((a, b) => (a.length > b.length ? a : b))
     );
 
-    // Wait for the start and end bytes in order to successfully get subtitles
-    await waitForTorrentBytes(torrent, largestFileIndex, 0, 64 * 1024);
-    await waitForTorrentBytes(
-      torrent,
-      largestFileIndex,
-      torrent.files[largestFileIndex].length - 64 * 1024,
-      torrent.files[largestFileIndex].length
-    );
-
     videoUrl =
       "http://" + networkAddress() + ":" + serverPort + "/" + largestFileIndex;
 
-    subtitlesLink = await getSubtitlesLink(
-      torrent,
-      foundSeason,
-      foundEpisode,
-      torrent.files[largestFileIndex].path
-    );
+    subtitlesLink = subtitlesUrl;
   }
 
   console.log("Changing to chromecast");
@@ -225,7 +234,7 @@ export function addTorrentToClient(
       },
       torrent => {
         torrent.on("done", () => {
-          torrent.pause();
+          torrent.destroy();
           onTorrentDone();
         });
         resolve(torrent);
@@ -329,24 +338,6 @@ async function getMagnetLinkFromPiratebay(
     "seeders"
   );
   return bestTorrent.magnetLink;
-}
-
-export async function waitForTorrentBytes(
-  torrent: WebTorrentTorrent,
-  fileIndex: number,
-  start: number,
-  end: number
-) {
-  return new Promise((resolve, reject) => {
-    torrent.files[fileIndex]
-      .createReadStream({
-        start,
-        end
-      })
-      .on("error", () => reject())
-      .on("end", () => resolve())
-      .resume();
-  });
 }
 
 export async function getSubtitlesLink(

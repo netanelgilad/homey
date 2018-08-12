@@ -148,7 +148,7 @@ export function ChromecastSideEffects(props: {
 export function startApplication(client) {
   return new Promise<any>((resolve, reject) => {
     console.log("Getting session on chromecast...");
-    client.getSessions(function(err, sess) {
+    client.getSessions((err, sess) => {
       if (err) {
         console.log("An error occured trying to get sessions", err);
         reject(err);
@@ -192,6 +192,11 @@ async function getConnectedClient(
     address,
     () => onClientConnected(client)
   );
+  client.on("close", (...args) => {
+    console.log("Connection to chromecast was closed!");
+    console.log(...args);
+    getConnectedClient(address, onClientConnected);
+  });
   client.on("status", status => {
     console.log("client status", status);
   });

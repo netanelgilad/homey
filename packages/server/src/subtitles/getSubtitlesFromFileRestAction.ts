@@ -11,11 +11,11 @@ export const getSubtitlesFromFileRestAction: RestAction<
   },
   Readable
 > = {
-  path: "/subtitles/srt/{filePath}",
+  path: "/subtitles",
   method: "get",
   parameters: {
     filePath: {
-      location: RestParameterLocation.Path,
+      location: RestParameterLocation.Query,
       required: true
     }
   },
