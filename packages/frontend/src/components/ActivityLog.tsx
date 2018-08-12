@@ -8,7 +8,7 @@ export function ActivityLog(props: { poll: boolean }) {
   return (
     <APIAction
       initialValue={[]}
-      activate={axios => axios.get("/activity-log?limit=10")}
+      activate={axios => axios.get("/activity-log?limit=9")}
     >
       {({ value, call }) => (
         <>
