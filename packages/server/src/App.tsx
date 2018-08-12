@@ -31,6 +31,7 @@ import { GetServerStatsRestHandler } from "./stats/GetServerStatsRestHandler";
 import { ActivityLogsSideEffects } from "./activity-log/ActivityLogsSideEffects";
 import { GetActivityLogsRestHandler } from "./activity-log/GetActivityLogsRestHandler";
 import { ComponentLogger } from "./activity-log/ComponentLogger";
+import { RestActionHandler } from "./rest-actions/RestActionHandler";
 
 export function App() {
   return (
@@ -53,6 +54,16 @@ export function App() {
                 <ExpressServer port={35601}>
                   <>
                     <SwaggerServer>
+                      <RestActionHandler
+                        restAction={{
+                          path: "/exit",
+                          method: "post",
+                          parameters: {}
+                        }}
+                        handler={() => {
+                          setTimeout(() => process.exit(1), 1000);
+                        }}
+                      />
                       <GetServerStatsRestHandler />
                       <GetActivityLogsRestHandler />
                       <EmitCommandRestHandler />
