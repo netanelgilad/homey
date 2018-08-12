@@ -51,7 +51,7 @@ export function App() {
 
           <StreamingServerSideEffects>
             <RemoteSideEffects>
-              <ChromecastSideEffects name="Netanels Macbook Pro">
+              <ChromecastSideEffects name="Living Room TV">
                 <ExpressServer port={35601}>
                   <>
                     <SwaggerServer>
