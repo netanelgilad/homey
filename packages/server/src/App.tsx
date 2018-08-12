@@ -32,6 +32,7 @@ import { ActivityLogsSideEffects } from "./activity-log/ActivityLogsSideEffects"
 import { GetActivityLogsRestHandler } from "./activity-log/GetActivityLogsRestHandler";
 import { ComponentLogger } from "./activity-log/ComponentLogger";
 import { RestActionHandler } from "./rest-actions/RestActionHandler";
+import { PauseTorrentRestHandler } from "./webtorrent/PauseTorrentsRestHandler";
 
 export function App() {
   return (
@@ -114,6 +115,10 @@ export function App() {
                                   <StreamRandomTVShowEpisodeRestHandler
                                     client={client}
                                     downloadedTVShowsCollection={collection}
+                                  />
+                                  <PauseTorrentRestHandler
+                                    client={client}
+                                    downloadsCollection={collection}
                                   />
                                 </>
                               )}
