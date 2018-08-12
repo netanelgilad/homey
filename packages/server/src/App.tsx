@@ -48,7 +48,6 @@ export function App() {
               />
             )}
           </ComponentLogger>
-
           <StreamingServerSideEffects>
             <RemoteSideEffects>
               <ChromecastSideEffects name="Living Room TV">
@@ -82,6 +81,7 @@ export function App() {
                                         .value();
                                       existing.forEach(downloadedTvShow =>
                                         addTorrentToClient(
+                                          () => {},
                                           client,
                                           downloadedTvShow.magnetLink,
                                           () => {

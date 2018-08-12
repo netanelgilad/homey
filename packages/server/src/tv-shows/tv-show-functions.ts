@@ -46,6 +46,7 @@ export async function downloadTVShowEpisode(
   });
 
   const torrent = await ensureTorrentForEpisode(
+    log,
     client,
     downloadedTVShowsCollection,
     displayMessage,
@@ -229,11 +230,13 @@ export async function getTVShowData(
 }
 
 export function addTorrentToClient(
+  log: Log,
   client: Instance,
   magnetLink: string,
   onTorrentDone: () => void
 ) {
   return new Promise<WebTorrentTorrent>(resolve => {
+    log({ level: "info", message: "Downloading torrent file..." });
     client.add(
       magnetLink,
       {
@@ -254,6 +257,10 @@ export function addTorrentToClient(
         ]
       },
       torrent => {
+        log({
+          level: "success",
+          message: "Torrent file donwloaded sucessfully."
+        });
         torrent.on("done", () => {
           torrent.destroy();
           onTorrentDone();
@@ -265,6 +272,7 @@ export function addTorrentToClient(
 }
 
 export async function ensureTorrentForEpisode(
+  log: Log,
   client: Instance,
   downloadedTVShowsCollection: LowCollection<TVShowEpisode>,
   displayMessage: DisplayMessage,
@@ -292,7 +300,7 @@ export async function ensureTorrentForEpisode(
       return;
     }
 
-    const torrent = await addTorrentToClient(client, magnetLink, () => {
+    const torrent = await addTorrentToClient(log, client, magnetLink, () => {
       downloadedTVShowsCollection
         .find({
           tvShowName: tvShowInfo.tvShowName,
