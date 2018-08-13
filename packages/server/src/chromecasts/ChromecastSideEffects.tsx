@@ -208,7 +208,13 @@ async function getConnectedClient(
   const client = new Client();
   client.connect(
     address,
-    () => onClientConnected(client)
+    () => {
+      log({
+        level: "success",
+        message: "Successfully connected to chromecast"
+      });
+      onClientConnected(client);
+    }
   );
   client.on("close", () => {
     log({ level: "warning", message: "Connection to chromecast was closed!" });
