@@ -23,8 +23,8 @@ class App extends React.Component {
       >
         {({ state, setState }) => (
           <Layout style={{ height: "100%", padding: "50px" }}>
-            <Layout>
-              <Layout.Sider width={600} theme="light">
+            <Layout style={{maxHeight: "620px"}}>
+              <Layout.Sider width={600} theme="light" style={{overflow: "hidden"}}>
                 <TvShowsList poll={!state.isPlaying} />
               </Layout.Sider>
               <Layout.Content>
