@@ -6,6 +6,7 @@ import Progress from "antd/lib/progress";
 import Tag from "antd/lib/tag";
 import * as React from "react";
 import { APIAction } from "../network/APIAction";
+import Card from "antd/lib/card";
 
 export const KiloByte = 1024;
 export const MegaByte = 1024 * 1024;
@@ -57,12 +58,11 @@ export function Time(props: { time: number }) {
 
 export const gridStyle = {
   textAlign: "center" as "center",
-  width: "25%"
+  padding: "0",
+  marginBottom: "3px"
 };
 
-export function TvShowsList(props: {
-  poll: boolean;
-}) {
+export function TvShowsList(props: { poll: boolean }) {
   return (
     <APIAction
       initialValue={[] as any[]}
@@ -70,71 +70,71 @@ export function TvShowsList(props: {
     >
       {({ isInProgress, didExecute, value, call }) => (
         <>
-          <List
-            itemLayout="horizontal"
-            loading={isInProgress && !didExecute}
-            grid={{ gutter: 16 }}
-            dataSource={value || []}
-            renderItem={(tvShowEpisodeInfo: any) => (
-              <List.Item
-                actions={
-                  tvShowEpisodeInfo.torrentInfo.progress === 1
-                    ? []
-                    : [
-                        <Progress
-                          type="circle"
-                          status="active"
-                          width={40}
-                          percent={Math.round(
-                            tvShowEpisodeInfo.torrentInfo.progress * 100
-                          )}
-                        />,
-                        <IconText
-                          type="cloud-download"
-                          text={
-                            <Speed
-                              speed={
-                                tvShowEpisodeInfo.torrentInfo.downloadSpeed
-                              }
-                            />
-                          }
-                        />,
-                        <IconText
-                          type="clock-circle"
-                          text={
-                            <Time
-                              time={tvShowEpisodeInfo.torrentInfo.timeRemaining}
-                            />
-                          }
-                        />,
-                        <IconText
-                          type="usergroup-add"
-                          text={tvShowEpisodeInfo.torrentInfo.peers}
-                        />
-                      ]
-                }
-              >
-                <List.Item.Meta
-                  avatar={
-                    <img
-                      height={100}
-                      src={tvShowEpisodeInfo.episode.coverImageUrl}
-                    />
+          <Card
+            title="Active downloads"
+            headStyle={{ padding: "5px" }}
+            bodyStyle={{ padding: "5px" }}
+          >
+            <List
+              itemLayout="horizontal"
+              loading={isInProgress && !didExecute}
+              grid={{ gutter: 16 }}
+              dataSource={(value || []).filter(x => !x.episode.done)}
+              renderItem={(tvShowEpisodeInfo: any) => (
+                <List.Item
+                  style={{ marginBottom: "2px" }}
+                  actions={
+                    tvShowEpisodeInfo.torrentInfo.progress === 1
+                      ? []
+                      : [
+                          <Progress
+                            type="circle"
+                            status="active"
+                            width={40}
+                            percent={Math.round(
+                              tvShowEpisodeInfo.torrentInfo.progress * 100
+                            )}
+                          />,
+                          <IconText
+                            type="cloud-download"
+                            text={
+                              <Speed
+                                speed={
+                                  tvShowEpisodeInfo.torrentInfo.downloadSpeed
+                                }
+                              />
+                            }
+                          />,
+                          <IconText
+                            type="clock-circle"
+                            text={
+                              <Time
+                                time={
+                                  tvShowEpisodeInfo.torrentInfo.timeRemaining
+                                }
+                              />
+                            }
+                          />,
+                          <IconText
+                            type="usergroup-add"
+                            text={tvShowEpisodeInfo.torrentInfo.peers}
+                          />
+                        ]
                   }
-                  title={tvShowEpisodeInfo.episode.tvShowName}
-                  description={
-                    <div>
+                >
+                  <List.Item.Meta
+                    avatar={
+                      <img
+                        height={70}
+                        src={tvShowEpisodeInfo.episode.coverImageUrl}
+                      />
+                    }
+                    title={tvShowEpisodeInfo.episode.tvShowName}
+                    description={
                       <div>
-                        Season {tvShowEpisodeInfo.episode.season} Episode{" "}
-                        {tvShowEpisodeInfo.episode.episode}
-                      </div>
-                      <div>
-                        <div>
-                          {tvShowEpisodeInfo.torrentInfo.progress > 0.1 ? (
-                            <Tag color="green">Ready to stream</Tag>
-                          ) : (
-                            <Tag color="orange">Waiting...</Tag>
-                          )}
+                        <div style={{ fontSize: "10px" }}>
+                          Season {tvShowEpisodeInfo.episode.season} Episode{" "}
+                          {tvShowEpisodeInfo.episode.episode}
                         </div>
                         <div>
                           {tvShowEpisodeInfo.episode.subtitlesUrl ? (
@@ -144,15 +144,45 @@ export function TvShowsList(props: {
                           )}
                         </div>
                       </div>
+                    }
+                  />
+                </List.Item>
+              )}
+            />
+          </Card>
+          <Card
+            title="Ready To Stream"
+            headStyle={{ padding: "5px" }}
+            bodyStyle={{ padding: "5px" }}
+          >
+            {value!
+              .filter(x => x.episode.done)
+              .map(x => x.episode)
+              .map(episode => (
+                <Card.Grid style={gridStyle}>
+                  <div style={{display: "flex"}}>
+                    <div style={{  }}>
+                      <img height={70} src={episode.coverImageUrl} />
                     </div>
-                  }
-                />
-              </List.Item>
-            )}
-          />
-          {
-            props.poll && <Interval interval={1500} run={call} />
-          }
+                    <div style={{ flex: 1}}>
+                      <h4>{episode.tvShowName}</h4>
+                      <div style={{ fontSize: "10px" }}>
+                          Season {episode.season} Episode{" "}
+                          {episode.episode}
+                        </div>
+                        <div>
+                          {episode.subtitlesUrl ? (
+                            <Tag color="green">Has Subtitles</Tag>
+                          ) : (
+                            <Tag color="orange">No Subtitles</Tag>
+                          )}
+                        </div>
+                    </div>
+                  </div>
+                </Card.Grid>
+              ))}
+          </Card>
+          {props.poll && <Interval interval={1500} run={call} />}
         </>
       )}
     </APIAction>

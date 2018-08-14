@@ -6267,6 +6267,10 @@ react-dev-utils@^5.0.1:
     strip-ansi "3.0.1"
     text-table "0.2.0"
 
+react-display-name@^0.2.3:
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/react-display-name/-/react-display-name-0.2.4.tgz#e2a670b81d79a2204335510c01246f4c92ff12cf"
+
 react-dom@^16.4.2:
   version "16.4.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-16.4.2.tgz#4afed569689f2c561d2b8da0b819669c38a0bda4"
@@ -6364,6 +6368,14 @@ react-slick@~0.23.1:
     json2mq "^0.2.0"
     lodash.debounce "^4.0.8"
     resize-observer-polyfill "^1.5.0"
+
+react-stay-scrolled@^2.1.1:
+  version "2.1.1"
+  resolved "https://registry.yarnpkg.com/react-stay-scrolled/-/react-stay-scrolled-2.1.1.tgz#976ebe564d3e0c3abaed2097d0cffc1b1d91331c"
+  dependencies:
+    hoist-non-react-statics "^2.3.1"
+    prop-types "^15.6.0"
+    react-display-name "^0.2.3"
 
 react@^15.6.1:
   version "15.6.2"

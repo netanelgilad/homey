@@ -1,9 +1,10 @@
 import * as React from "react";
 import { RestActionHandler } from "../rest-actions/RestActionHandler";
-import { cpuUsage as getCPUUsage, freemem } from "os-utils";
+import { cpuUsage as getCPUUsage } from "os-utils";
 import { RemoteSideEffectsContext } from "../devices/RemoteSideEffects";
 import { ChromecastSideEffectsContext } from "../chromecasts/ChromecastSideEffects";
 import { check } from "diskusage";
+import { freemem } from "os";
 
 export function GetServerStatsRestHandler() {
   return (

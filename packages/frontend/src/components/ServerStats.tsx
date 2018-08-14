@@ -56,8 +56,7 @@ export function ServerStats(props: { poll: boolean }) {
             </Button>
             <Button style={{ height: "40px", width: "110px" }}>
               <Icon type="database" />
-              {value!.freeMemory.toFixed(2)}
-              MB
+              {Space(value!.freeMemory)}
             </Button>
             <Button style={{ height: "40px", width: "110px" }}>
               <Icon type="file" />
@@ -79,7 +78,7 @@ export function Space(space: number) {
   } else if (space > MegaByte * 1.1) {
     result = (space / MegaByte).toFixed(2) + "MB";
   } else if (space > KiloByte * 1.1) {
-    result = (space / KiloByte).toFixed(2) + "K";
+    result = (space / KiloByte).toFixed(2) + "KB";
   }
 
   return result;

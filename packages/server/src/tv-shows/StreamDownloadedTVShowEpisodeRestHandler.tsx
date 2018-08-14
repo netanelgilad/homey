@@ -2,7 +2,7 @@ import * as React from "react";
 import { LowCollection } from "../database/Collection";
 import { TVShowEpisode } from "./TVShow";
 import { ExpressServerContext } from "../express/ExpressServer";
-import { Lifecycle } from "../../node_modules/@react-atoms/core";
+import { Lifecycle } from "@react-atoms/core";
 import mime = require("mime");
 import { basename } from "path";
 import { statSync, createReadStream } from "fs";
@@ -33,8 +33,8 @@ export function StreamDownloadedTVShowEpisodeRestHandler(props: {
                 const downloadedTvShow = props.downloadedTVShowsCollection
                   .find({
                     tvShowName: tvShow,
-                    season: Number(season),
-                    episode: Number(episode)
+                    season: season,
+                    episode: episode
                   })
                   .value();
 

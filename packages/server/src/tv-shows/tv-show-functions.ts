@@ -131,7 +131,9 @@ export async function streamTVShowEpisode(
     videoUrl = encodeURI(
       "http://" +
         networkAddress() +
-        `:35601/tv-shows/stream/downloaded/${tvShowName}/${foundSeason}/${foundEpisode}`
+        `:35601/tv-shows/stream/downloaded/${
+          tvShowInfo.tvShowName
+        }/${foundSeason}/${foundEpisode}`
     );
     subtitlesLink = downloadedTvShowEpisode.subtitlesUrl;
   } else {

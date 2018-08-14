@@ -33,6 +33,8 @@ import { GetActivityLogsRestHandler } from "./activity-log/GetActivityLogsRestHa
 import { ComponentLogger } from "./activity-log/ComponentLogger";
 import { RestActionHandler } from "./rest-actions/RestActionHandler";
 import { PauseTorrentRestHandler } from "./webtorrent/PauseTorrentsRestHandler";
+import { ClearDatabaseRestHandler } from "./database/ClearDatabaseRestHandler";
+import { StreamDownloadedTVShowEpisodeRestHandler } from "./tv-shows/StreamDownloadedTVShowEpisodeRestHandler";
 
 export function App() {
   return (
@@ -64,6 +66,7 @@ export function App() {
                           setTimeout(() => process.exit(1), 1000);
                         }}
                       />
+                      <ClearDatabaseRestHandler />
                       <GetServerStatsRestHandler />
                       <GetActivityLogsRestHandler />
                       <EmitCommandRestHandler />
@@ -71,9 +74,13 @@ export function App() {
                         {({ client }) => (
                           <>
                             <GetTorrentsRestHandler client={client} />
+
                             <Collection<TVShowEpisode> name="downloadedTvShows">
                               {({ collection }) => (
                                 <>
+                                  <StreamDownloadedTVShowEpisodeRestHandler
+                                    downloadedTVShowsCollection={collection}
+                                  />
                                   <Lifecycle
                                     onDidMount={() => {
                                       const existing = collection

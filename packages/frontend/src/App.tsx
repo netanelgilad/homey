@@ -2,8 +2,7 @@ import * as React from "react";
 import Layout from "antd/lib/layout";
 import message from "antd/lib/message";
 import "./App.css";
-import {
-  TvShowsList} from "./components/TvShowsList";
+import { TvShowsList } from "./components/TvShowsList";
 import { CastMediaPlayer } from "./components/CastMediaPlayer";
 import { State } from "@react-atoms/core";
 import { ServerStats } from "./components/ServerStats";
@@ -23,11 +22,21 @@ class App extends React.Component {
       >
         {({ state, setState }) => (
           <Layout style={{ height: "100%", padding: "50px" }}>
-            <Layout style={{maxHeight: "620px"}}>
-              <Layout.Sider width={600} theme="light" style={{overflow: "hidden"}}>
+            <Layout style={{ maxHeight: "620px" }}>
+              <Layout.Sider
+                width={600}
+                theme="light"
+                style={{ overflow: "hidden" }}
+              >
                 <TvShowsList poll={!state.isPlaying} />
               </Layout.Sider>
-              <Layout.Content>
+              <Layout.Content
+                style={{
+                  backgroundColor: "white",
+                  display: "flex",
+                  flexDirection: "column"
+                }}
+              >
                 <div style={{ height: "40px", backgroundColor: "#ffffff" }}>
                   <ServerStats poll={!state.isPlaying} />
                 </div>

@@ -26,15 +26,18 @@ export function ActivityLogsSideEffects(props: {
         <ActivityLogsSideEffectsContext.Provider
           value={{
             writeActivityLog(log) {
+              const timestamp = new Date();
               if (log.level === "warning") {
-                console.warn(`[${log.component}]: ${log.message}`);
+                console.warn(`[${timestamp} ${log.component}]: ${log.message}`);
               } else if (log.level === "error") {
-                console.error(`[${log.component}]: ${log.message}`);
+                console.error(
+                  `[${timestamp} ${log.component}]: ${log.message}`
+                );
               } else {
-                console.info(`[${log.component}]: ${log.message}`);
+                console.info(`[${timestamp} ${log.component}]: ${log.message}`);
               }
 
-              collection.push({ ...log, timestamp: new Date() }).write();
+              collection.push({ ...log, timestamp }).write();
               if (collection.size().value() > props.maxSize) {
                 collection.shift().write();
               }

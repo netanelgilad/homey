@@ -9,6 +9,7 @@ import {
 import * as mime from "mime";
 import { readFileSync } from "fs";
 import { ComponentLogger, Log } from "../activity-log/ComponentLogger";
+import { isNull } from "util";
 
 export type PlayVideo = (
   title,
@@ -72,10 +73,13 @@ export function ChromecastSideEffects(props: {
                 {({ address }) =>
                   address && (
                     <Lifecycle
-                      onDidMount={async () => {
-                        getConnectedClient(log, address, client =>
-                          setState({ client })
-                        );
+                      onDidMount={() => {
+                        getConnectedClient(log, address, client => {
+                          if (isNull(client)) {
+                            console.error("CHROMECAST CLIENT IS NULL. WHY???");
+                          }
+                          setState({ client });
+                        });
                       }}
                     />
                   )
@@ -105,7 +109,10 @@ export function ChromecastSideEffects(props: {
                     const player = await startApplication(log, state.client);
                     const media = {
                       contentId: videoLink,
-                      contentType: (mime as any).lookup(videoLink, "video/mp4"),
+                      contentType: (mime as any).getType(
+                        videoLink,
+                        "video/mp4"
+                      ),
                       streamType: "BUFFERED",
                       tracks: [subtitlesLink].map(toSubtitles),
                       metadata: {
@@ -216,6 +223,10 @@ async function getConnectedClient(
       onClientConnected(client);
     }
   );
+  (client as any).client.on("close", () => {
+    log({ level: "warning", message: "Connection to chromecast was closed!" });
+    getConnectedClient(log, address, onClientConnected);
+  });
   client.on("close", () => {
     log({ level: "warning", message: "Connection to chromecast was closed!" });
     getConnectedClient(log, address, onClientConnected);
