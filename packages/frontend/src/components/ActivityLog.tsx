@@ -14,7 +14,7 @@ export function ActivityLog(props: { poll: boolean }) {
       {({ value, call }) => (
         <div style={{ flex: 1 }}>
           <h3 style={{ margin: "5px" }}>Activity Log</h3>
-          <StayScrolled component="div" style={{overflow: "hidden"}}>
+          <StayScrolled component="div" style={{height: "250px", overflow: "hidden"}}>
             {value!.map((item: any) => (
               <div style={{ margin: "5px" }}>
                 <Message item={item} />
